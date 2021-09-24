@@ -19,6 +19,7 @@ export default class SocketRouter extends TableSocketRouter {
     userFoldConsumer = null,
     userBetTurnConsumer = null,
     userBetRiverConsumer = null,
+    settleGameRoundConsumer,
   }) {
     super({
       definition,
@@ -39,6 +40,7 @@ export default class SocketRouter extends TableSocketRouter {
     this.userFoldConsumer = userFoldConsumer;
     this.userBetTurnConsumer = userBetTurnConsumer;
     this.userBetRiverConsumer = userBetRiverConsumer;
+    this.settleGameRoundConsumer = settleGameRoundConsumer;
   }
 
   init(socketClient) {
@@ -76,6 +78,11 @@ export default class SocketRouter extends TableSocketRouter {
             this.userBetRiverConsumer.consume(
               this.gameData.realPlayers[this.socketClient.id],
               payload,
+            );
+            break;
+          case 'settle':
+            this.settleGameRoundConsumer.settleRound(
+              this.gameData.realPlayers[this.socketClient.id].profile.name,
             );
             break;
         }

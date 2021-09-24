@@ -28,7 +28,7 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
   async settleRound(playerName, isFold = false) {
     const { betTracks } = this.gameData.ingame[playerName];
     const result = { dealer: betTracks.dealer, communityCards: betTracks.communityCards };
-    const settlementResult = betTracks.combinationResult.dealer;
+    const settlementResult = betTracks.combinationResult?.dealer;
 
     const round = await this.roundsRepository
       .findOneAndUpdate(
