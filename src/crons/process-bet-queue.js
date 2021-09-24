@@ -47,6 +47,12 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
         case actions.fold:
           await this.settleGameRoundConsumer.settleRound(player.profile.name, true);
           break;
+        case actions.betTurn:
+          await this.processBetTurn(player, payload.amount);
+          break;
+        case actions.betRiver:
+          await this.processBetRiver(player, payload.amount);
+          break;
       }
     } catch (e) {
       this.logService.logError(e);
@@ -130,7 +136,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
         totalAmount: betTracks.bets.ante,
         choices: betTracks.bets,
       },
-      endBet: betTracks.bets.ante + betTracks.bets.aa,
+      endBet: betTracks.bets.ante,
       user: balance,
     });
   }
@@ -210,24 +216,28 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       betTracks.deck.shift(),
       betTracks.deck.shift(),
     );
-    updateCombinationPlayerResultInBetTracks(playerName);
+    this.updateCombinationPlayerResultInBetTracks(playerName);
   }
 
   async processBetTurn(player, amount) {
-    const { betTracks } = this.gameData.ingame[player.profile.name];
+    if (amount > 0) {
+      const { betTracks } = this.gameData.ingame[player.profile.name];
 
-    const betInfo = {
-      amount,
-      gameId: this.definition.id,
-      gameRoundId: betTracks.roundId,
-      choiceId: this.definition.choicesMapper.turn,
-    };
-    const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
-    const { response } = apiResult;
-    if (apiResult.isOk) {
-      await this.handleSuccessBetTurn(player, amount, response);
+      const betInfo = {
+        amount,
+        gameId: this.definition.id,
+        gameRoundId: betTracks.roundId,
+        choiceId: this.definition.choicesMapper.turn,
+      };
+      const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
+      const { response } = apiResult;
+      if (apiResult.isOk) {
+        await this.handleSuccessBetTurn(player, amount, response);
+      } else {
+        this.handleFailPlaceBetResponse(player, response, actions.betTurn);
+      }
     } else {
-      this.handleFailPlaceBetResponse(player, response, actions.betTurn);
+      await this.handleSuccessBetTurn(player, amount);
     }
   }
 
@@ -246,8 +256,11 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       combinationResult: betTracks.combinationResult,
       totalAmount: Object.values(betTracks.bets).reduce((total, item) => total + item),
     };
-
-    this.publisher.publishToUser(player.UID, { endBet: amount, user: balance, turn });
+    if (amount > 0) {
+      this.publisher.publishToUser(player.UID, { endBet: amount, user: balance, turn });
+    } else {
+      this.publisher.publishToUser(player.UID, { turn });
+    }
   }
 
   updateBetTracksAfterBetTurn(playerName, amount) {
@@ -255,24 +268,28 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
 
     betTracks.bets.turn = amount;
     betTracks.communityCards.push(betTracks.deck.shift());
-    updateCombinationPlayerResultInBetTracks(playerName);
+    this.updateCombinationPlayerResultInBetTracks(playerName);
   }
 
   async processBetRiver(player, amount) {
-    const { betTracks } = this.gameData.ingame[player.profile.name];
+    if (amount > 0) {
+      const { betTracks } = this.gameData.ingame[player.profile.name];
 
-    const betInfo = {
-      amount,
-      gameId: this.definition.id,
-      gameRoundId: betTracks.roundId,
-      choiceId: this.definition.choicesMapper.river,
-    };
-    const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
-    const { response } = apiResult;
-    if (apiResult.isOk) {
-      await this.handleSuccessBetRiver(player, amount, response);
+      const betInfo = {
+        amount,
+        gameId: this.definition.id,
+        gameRoundId: betTracks.roundId,
+        choiceId: this.definition.choicesMapper.river,
+      };
+      const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
+      const { response } = apiResult;
+      if (apiResult.isOk) {
+        await this.handleSuccessBetRiver(player, amount, response);
+      } else {
+        this.handleFailPlaceBetResponse(player, response, actions.betRiver);
+      }
     } else {
-      this.handleFailPlaceBetResponse(player, response, actions.betRiver);
+      await this.handleSuccessBetRiver(player, amount);
     }
   }
 
@@ -292,7 +309,11 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       totalAmount: Object.values(betTracks.bets).reduce((total, item) => total + item),
     };
 
-    this.publisher.publishToUser(player.UID, { endBet: amount, user: balance, river });
+    if (amount > 0) {
+      this.publisher.publishToUser(player.UID, { endBet: amount, user: balance, river });
+    } else {
+      this.publisher.publishToUser(player.UID, { river });
+    }
 
     await this.settleGameRoundConsumer.settleRound(player.profile.name);
   }
@@ -303,7 +324,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
     betTracks.bets.river = amount;
     betTracks.communityCards.push(betTracks.deck.shift());
 
-    updateCombinationPlayerResultInBetTracks(playerName);
+    this.updateCombinationPlayerResultInBetTracks(playerName);
     const combinationDealerResult = getCombinationResult(
       betTracks.dealer.concat(betTracks.communityCards),
     );

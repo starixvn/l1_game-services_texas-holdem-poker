@@ -16,8 +16,8 @@ export default class BaseActionAfterDealingConsumer extends BasePlaceBetConsumer
     const resource = await loadLanguage(player?.session?.language);
     const translation = Translation.getInstance(player?.session?.language, resource);
     const formatNumberWithComma = helpers.numberHelper.formatNumberWithComma;
-    const { betTracks } = this.gameData.ingame[player.profile.name] || { betTracks: {} };
-    const total = Object.values(betTracks.bets).reduce((total, item) => total + item);
+    const { betTracks } = this.gameData.ingame[player.profile.name] || { betTracks: { bets: {} } };
+    const total = Object.values(betTracks.bets).reduce((total, item) => total + item, 0);
 
     return [
       {
@@ -54,20 +54,21 @@ export default class BaseActionAfterDealingConsumer extends BasePlaceBetConsumer
       });
       switch (action) {
         case actions.call:
+        case actions.fold:
           result.push({
-            failure: !betTracks.communityCards.length !== 0,
+            failure: betTracks.communityCards.length !== 0,
             notice: translation.t(translation.keys.cannotProcessBet),
           });
           break;
         case actions.betTurn:
           result.push({
-            failure: !betTracks.communityCards.length !== 3,
+            failure: betTracks.communityCards.length !== 3,
             notice: translation.t(translation.keys.cannotProcessBet),
           });
           break;
         case actions.betRiver:
           result.push({
-            failure: !betTracks.communityCards.length !== 4,
+            failure: betTracks.communityCards.length !== 4,
             notice: translation.t(translation.keys.cannotProcessBet),
           });
       }

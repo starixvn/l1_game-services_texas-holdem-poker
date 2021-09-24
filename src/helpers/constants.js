@@ -11,8 +11,6 @@ export const ranks = {
   highCards: 1,
 };
 
-// export const steps = { deal: 1, call: 2, turn: 3, river: 4 };
-
 export const actions = {
   deal: 'deal',
   call: 'call',

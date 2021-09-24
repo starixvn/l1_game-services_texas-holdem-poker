@@ -50,6 +50,7 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
     //     settlementResult: {},
     //   },
     // });
+    delete this.gameData.ingame[playerName];
     await gameNotifications.deleteOne({ uid: betTracks.uid, gameId: this.definition.id });
   }
 }

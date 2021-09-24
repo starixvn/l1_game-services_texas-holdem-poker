@@ -32,6 +32,23 @@ describe('result-helper test', () => {
       // Assert
       expect(actual).toStrictEqual(expected);
     });
+
+    it('should return expected', () => {
+      // Arrange
+      const cards = [{ rank: 1 }, { rank: 0 }, { rank: 0 }, { rank: 0 }, { rank: 1 }];
+      combination.mockReturnValue([cards, cards]);
+      CardCombination.prototype.getResult = jest
+        .fn()
+        .mockReturnValueOnce({ id: 1 })
+        .mockReturnValueOnce({ id: 2 });
+      const expected = { id: 2 };
+
+      // Act
+      const actual = getCombinationResult(cards);
+
+      // Assert
+      expect(actual).toStrictEqual(expected);
+    });
   });
 
   describe('compareCombination', () => {
