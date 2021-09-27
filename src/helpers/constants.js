@@ -8,7 +8,7 @@ export const ranks = {
   threeKind: 4,
   twoPairs: 3,
   onePair: 2,
-  highCards: 1,
+  highCard: 1,
 };
 
 export const actions = {

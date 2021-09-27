@@ -3,7 +3,7 @@ import { deal, generateDecks, reGenerateDecks } from '../helpers/deck-helper';
 import { getCombinationResult } from '../helpers/result-helper';
 import Translation from '@nex3/translation';
 import { helpers } from 'sc-common';
-import { actions } from '../helpers/constants';
+import { actions, ranks } from '../helpers/constants';
 
 export default class ProcessBetQueue extends BaseProcessBetQueue {
   constructor({
@@ -127,18 +127,36 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
     const newRound = await this.createRound(player, roundId);
     betTracks.roundId = newRound.id;
     betTracks.roundStartTime = new Date();
+    betTracks.combinationResult.player = this.getCombinationResultWhenDeal(betTracks.player);
     await this.createBet(player);
 
     this.publisher.publishToUser(player.UID, {
       deal: {
         roundId: betTracks.roundId,
         player: betTracks.player,
+        combinationResult: betTracks.combinationResult,
         totalAmount: betTracks.bets.ante,
         choices: betTracks.bets,
       },
       endBet: betTracks.bets.ante,
       user: balance,
     });
+  }
+
+  getCombinationResultWhenDeal(cards) {
+    if (cards[0].rank === cards[1].rank) {
+      return {
+        id: ranks.onePair,
+        combinationCards: cards,
+        cards,
+      };
+    } else {
+      return {
+        id: ranks.highCard,
+        combinationCards: (cards[0].rank || 13) > (cards[1].rank || 13) ? [cards[0]] : [cards[1]],
+        cards,
+      };
+    }
   }
 
   async createRound(player, roundId) {
@@ -164,6 +182,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       ante: betTracks.bets?.ante,
       cards: betTracks.player,
       bet: betTracks.bets?.ante,
+      result: betTracks.combinationResult.player,
       time: new Date(),
       memberId: player.session?.memberId,
       siteId: player.session?.siteId,

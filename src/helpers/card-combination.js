@@ -59,7 +59,7 @@ export default class CardCombination {
       },
       highCard: {
         condition: true,
-        id: ranks.highCards,
+        id: ranks.highCard,
         combinationCards: [margin.max],
       },
     };
