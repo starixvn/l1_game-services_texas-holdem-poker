@@ -80,11 +80,6 @@ export default class SocketRouter extends TableSocketRouter {
               payload,
             );
             break;
-          case 'settle':
-            this.settleGameRoundConsumer.settleRound(
-              this.gameData.realPlayers[this.socketClient.id].profile.name,
-            );
-            break;
         }
       }
     } catch (error) {
