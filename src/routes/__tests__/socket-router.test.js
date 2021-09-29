@@ -29,7 +29,7 @@ describe('Socket router test', () => {
   });
 
   describe('handlePlaceBet', () => {
-    it('should run correctly when verify false', () => {
+    it('should run correctly when verify false', async () => {
       // Arrange
       const router = new SocketRouter({});
       const payload = { action: actions.deal };
@@ -37,13 +37,13 @@ describe('Socket router test', () => {
       router.userDealConsumer = { consume: jest.fn() };
 
       // Act
-      router.handlePlaceBet(payload);
+      await router.handlePlaceBet(payload);
 
       // Assert
       expect(router.userDealConsumer.consume).not.toHaveBeenCalled();
     });
 
-    it('should log error when have error', () => {
+    it('should log error when have error', async () => {
       // Arrange
       const error = new Error('error');
       const router = new SocketRouter({});
@@ -54,13 +54,13 @@ describe('Socket router test', () => {
       router.logService = { logError: jest.fn() };
 
       // Act
-      router.handlePlaceBet(payload);
+      await router.handlePlaceBet(payload);
 
       // Assert
       expect(router.logService.logError).toHaveBeenCalledWith(error);
     });
 
-    it('should call user deal when action deal', () => {
+    it('should call user deal when action deal', async () => {
       // Arrange
       const router = new SocketRouter({});
       const payload = { action: actions.deal, anteBet: 10 };
@@ -71,13 +71,13 @@ describe('Socket router test', () => {
       router.gameData = { realPlayers: { 1: realPlayer } };
 
       // Act
-      router.handlePlaceBet(payload);
+      await router.handlePlaceBet(payload);
 
       // Assert
       expect(router.userDealConsumer.consume).toHaveBeenCalledWith(realPlayer, payload);
     });
 
-    it('should call user fold when action fold', () => {
+    it('should call user fold when action fold', async () => {
       // Arrange
       const router = new SocketRouter({});
       const payload = { action: actions.fold };
@@ -88,13 +88,13 @@ describe('Socket router test', () => {
       router.gameData = { realPlayers: { 1: realPlayer } };
 
       // Act
-      router.handlePlaceBet(payload);
+      await router.handlePlaceBet(payload);
 
       // Assert
       expect(router.userFoldConsumer.consume).toHaveBeenCalledWith(realPlayer, payload);
     });
 
-    it('should call user call when action call', () => {
+    it('should call user call when action call', async () => {
       // Arrange
       const router = new SocketRouter({});
       const payload = { action: actions.call };
@@ -105,13 +105,13 @@ describe('Socket router test', () => {
       router.gameData = { realPlayers: { 1: realPlayer } };
 
       // Act
-      router.handlePlaceBet(payload);
+      await router.handlePlaceBet(payload);
 
       // Assert
       expect(router.userCallConsumer.consume).toHaveBeenCalledWith(realPlayer, payload);
     });
 
-    it('should call user call when action doubleCall', () => {
+    it('should call user call when action doubleCall', async () => {
       // Arrange
       const router = new SocketRouter({});
       const payload = { action: actions.doubleCall };
@@ -122,13 +122,13 @@ describe('Socket router test', () => {
       router.gameData = { realPlayers: { 1: realPlayer } };
 
       // Act
-      router.handlePlaceBet(payload);
+      await router.handlePlaceBet(payload);
 
       // Assert
       expect(router.userCallConsumer.consume).toHaveBeenCalledWith(realPlayer, payload);
     });
 
-    it('should call user bet turn when action betTurn', () => {
+    it('should call user bet turn when action betTurn', async () => {
       // Arrange
       const router = new SocketRouter({});
       const payload = { action: actions.betTurn };
@@ -139,13 +139,13 @@ describe('Socket router test', () => {
       router.gameData = { realPlayers: { 1: realPlayer } };
 
       // Act
-      router.handlePlaceBet(payload);
+      await router.handlePlaceBet(payload);
 
       // Assert
       expect(router.userBetTurnConsumer.consume).toHaveBeenCalledWith(realPlayer, payload);
     });
 
-    it('should call user bet turn when action checkTurn', () => {
+    it('should call user bet turn when action checkTurn', async () => {
       // Arrange
       const router = new SocketRouter({});
       const payload = { action: actions.checkTurn };
@@ -156,13 +156,13 @@ describe('Socket router test', () => {
       router.gameData = { realPlayers: { 1: realPlayer } };
 
       // Act
-      router.handlePlaceBet(payload);
+      await router.handlePlaceBet(payload);
 
       // Assert
       expect(router.userBetTurnConsumer.consume).toHaveBeenCalledWith(realPlayer, payload);
     });
 
-    it('should call user bet turn when action betRiver', () => {
+    it('should call user bet turn when action betRiver', async () => {
       // Arrange
       const router = new SocketRouter({});
       const payload = { action: actions.betRiver };
@@ -173,13 +173,13 @@ describe('Socket router test', () => {
       router.gameData = { realPlayers: { 1: realPlayer } };
 
       // Act
-      router.handlePlaceBet(payload);
+      await router.handlePlaceBet(payload);
 
       // Assert
       expect(router.userBetRiverConsumer.consume).toHaveBeenCalledWith(realPlayer, payload);
     });
 
-    it('should call user bet turn when action checkRiver', () => {
+    it('should call user bet turn when action checkRiver', async () => {
       // Arrange
       const router = new SocketRouter({});
       const payload = { action: actions.checkRiver };
@@ -190,13 +190,13 @@ describe('Socket router test', () => {
       router.gameData = { realPlayers: { 1: realPlayer } };
 
       // Act
-      router.handlePlaceBet(payload);
+      await router.handlePlaceBet(payload);
 
       // Assert
       expect(router.userBetRiverConsumer.consume).toHaveBeenCalledWith(realPlayer, payload);
     });
 
-    it('should run correct when payload empty', () => {
+    it('should run correct when payload empty', async () => {
       // Arrange
       const router = new SocketRouter({});
       const payload = {};
@@ -208,7 +208,7 @@ describe('Socket router test', () => {
       router.userBetRiverConsumer = { consume: jest.fn() };
 
       // Act
-      router.handlePlaceBet(payload);
+      await router.handlePlaceBet(payload);
 
       // Assert
       expect(router.userDealConsumer.consume).not.toHaveBeenCalled();

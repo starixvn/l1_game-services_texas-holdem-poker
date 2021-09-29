@@ -7,7 +7,6 @@ const schema = new mongoose.Schema({
   name: { type: String, required: true },
   phien: { type: Number, default: 0 },
 
-  aa: { type: Number, default: 0 },
   ante: { type: Number, default: 0 },
   call: { type: Number, default: 0 },
   turn: { type: Number, default: 0 },

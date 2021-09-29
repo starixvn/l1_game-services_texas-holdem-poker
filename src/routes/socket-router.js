@@ -49,7 +49,7 @@ export default class SocketRouter extends TableSocketRouter {
     this.socketClient.on('getTicketDetail', this.handleGetTicketDetail.bind(this));
   }
 
-  handlePlaceBet(payload) {
+  async handlePlaceBet(payload) {
     try {
       if (!this.verify()) {
         return;
@@ -57,25 +57,34 @@ export default class SocketRouter extends TableSocketRouter {
       if (payload.action) {
         switch (payload.action) {
           case actions.deal:
-            this.userDealConsumer.consume(this.gameData.realPlayers[this.socketClient.id], payload);
+            await this.userDealConsumer.consume(
+              this.gameData.realPlayers[this.socketClient.id],
+              payload,
+            );
             break;
           case actions.fold:
-            this.userFoldConsumer.consume(this.gameData.realPlayers[this.socketClient.id], payload);
+            await this.userFoldConsumer.consume(
+              this.gameData.realPlayers[this.socketClient.id],
+              payload,
+            );
             break;
           case actions.call:
           case actions.doubleCall:
-            this.userCallConsumer.consume(this.gameData.realPlayers[this.socketClient.id], payload);
+            await this.userCallConsumer.consume(
+              this.gameData.realPlayers[this.socketClient.id],
+              payload,
+            );
             break;
           case actions.checkTurn:
           case actions.betTurn:
-            this.userBetTurnConsumer.consume(
+            await this.userBetTurnConsumer.consume(
               this.gameData.realPlayers[this.socketClient.id],
               payload,
             );
             break;
           case actions.checkRiver:
           case actions.betRiver:
-            this.userBetRiverConsumer.consume(
+            await this.userBetRiverConsumer.consume(
               this.gameData.realPlayers[this.socketClient.id],
               payload,
             );

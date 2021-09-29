@@ -115,7 +115,7 @@ describe('BaseActionAfterDealingConsumer test', () => {
     it('should return expected when bet amount greater than maxBet per round', async () => {
       // Arrange
       const data = {
-        ingame: { [player.profile.name]: { betTracks: { bets: { ante: 100, aa: 1000 } } } },
+        ingame: { [player.profile.name]: { betTracks: { bets: { ante: 1000 } } } },
       };
       const consumer = new BaseActionAfterDealingConsumer(definition, data, publisher, logService);
       const expected = [

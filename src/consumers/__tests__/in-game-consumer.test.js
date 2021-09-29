@@ -88,7 +88,7 @@ describe('InGameConsumer test', () => {
       });
       const betTracks = {
         roundId: 1,
-        bets: { ante: 10, aa: 10 },
+        bets: { ante: 10 },
         player: [],
         communityCards: [{ rank: 0, suit: 1 }],
         combinationResult: { player: {} },
@@ -116,7 +116,7 @@ describe('InGameConsumer test', () => {
           player: betTracks.player,
           communityCards: betTracks.communityCards,
           combinationResult: betTracks.combinationResult,
-          totalAmount: 20,
+          totalAmount: 10,
         },
         user: { uid: realPlayer.UID },
         lastRoundId: data.roundId,
