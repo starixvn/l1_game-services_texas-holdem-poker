@@ -19,7 +19,6 @@ export default class SocketRouter extends TableSocketRouter {
     userFoldConsumer = null,
     userBetTurnConsumer = null,
     userBetRiverConsumer = null,
-    settleGameRoundConsumer,
   }) {
     super({
       definition,
@@ -40,7 +39,6 @@ export default class SocketRouter extends TableSocketRouter {
     this.userFoldConsumer = userFoldConsumer;
     this.userBetTurnConsumer = userBetTurnConsumer;
     this.userBetRiverConsumer = userBetRiverConsumer;
-    this.settleGameRoundConsumer = settleGameRoundConsumer;
   }
 
   init(socketClient) {

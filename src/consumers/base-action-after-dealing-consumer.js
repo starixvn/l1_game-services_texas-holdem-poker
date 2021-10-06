@@ -17,7 +17,7 @@ export default class BaseActionAfterDealingConsumer extends BasePlaceBetConsumer
     const translation = Translation.getInstance(player?.session?.language, resource);
     const formatNumberWithComma = helpers.numberHelper.formatNumberWithComma;
     const { betTracks } = this.gameData.ingame[player.profile.name] || { betTracks: { bets: {} } };
-    const total = Object.values(betTracks.bets).reduce((total, item) => total + item, 0);
+    const total = Object.values(betTracks.bets).reduce((sum, item) => sum + item, 0);
 
     return [
       {

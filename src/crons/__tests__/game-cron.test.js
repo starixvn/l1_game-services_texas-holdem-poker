@@ -239,7 +239,7 @@ describe('Game Cron test', () => {
 
       // Assert
       expect(game.gameData.remainingTime).toBe(definition.durations.wholeRound);
-      expect(game.settleGameRoundConsumer.settleRound).toHaveBeenCalledWith('a', true);
+      expect(game.settleGameRoundConsumer.settleRound).toHaveBeenCalledWith('a', false, true);
     });
   });
 });
