@@ -168,7 +168,72 @@ describe('Settle game test', () => {
       expect(betTracks.communityCards.length).toBe(5);
       expect(betTracks.combinationResult.dealer).toStrictEqual({ id: 2 });
       expect(betTracks.combinationResult.player).toStrictEqual({ id: 1 });
-      expect(publisher.publishToUser).toHaveBeenCalled();
+      expect(publisher.publishToUser).toHaveBeenCalledWith(betTracks.uid, {
+        autoSettle: {
+          communityCards: betTracks.communityCards,
+          combinationResult: betTracks.combinationResult,
+          dealer: betTracks.dealer,
+          totalAmount: 20,
+          step: 'call',
+        },
+      });
+      expect(round.settlementResult).toStrictEqual(betTracks.combinationResult.dealer);
+      expect(round.result).toStrictEqual(result);
+      expect(round.time).toEqual(new Date(123456));
+      expect(round.ended).toBeTrue();
+      expect(round.save).toHaveBeenCalled();
+      expect(consumer.settleBets).toHaveBeenCalledWith(
+        { ...finish, playerName, playerUID: betTracks.uid },
+        false,
+      );
+      expect(gameNotifications.deleteOne).toHaveBeenCalledWith({
+        uid: betTracks.uid,
+        gameId: definition.id,
+      });
+    });
+
+    it('it should run correctly when communityCards length greater than or equal to 3', async () => {
+      // Arrange
+      const round = { odds: {}, save: jest.fn() };
+      const roundsRepository = {
+        findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue(round) }),
+      };
+      const publisher = { publishToUser: jest.fn() };
+      const consumer = new SettleGameConsumer({
+        definition,
+        gameData,
+        roundsRepository,
+        publisher,
+      });
+      consumer.settleBets = jest.fn();
+      betTracks.deck = [communityCards[4]];
+      betTracks.communityCards = [
+        communityCards[0],
+        communityCards[1],
+        communityCards[2],
+        communityCards[3],
+      ];
+      betTracks.bets = { ante: 10, call: 10 };
+      getCombinationResult.mockReturnValueOnce({ id: 2 }).mockReturnValueOnce({ id: 1 });
+      const result = { dealer: betTracks.dealer, communityCards: betTracks.communityCards };
+      const finish = { roundId: betTracks.roundId, odds: round.odds, time: new Date(123456) };
+
+      // Act
+      await consumer.settleRound(playerName, false, true);
+
+      // Assert
+      expect(betTracks.communityCards.length).toBe(5);
+      expect(betTracks.combinationResult.dealer).toStrictEqual({ id: 2 });
+      expect(betTracks.combinationResult.player).toStrictEqual({ id: 1 });
+      expect(publisher.publishToUser).toHaveBeenCalledWith(betTracks.uid, {
+        autoSettle: {
+          communityCards: betTracks.communityCards,
+          combinationResult: betTracks.combinationResult,
+          dealer: betTracks.dealer,
+          totalAmount: 20,
+          step: 'turn',
+        },
+      });
       expect(round.settlementResult).toStrictEqual(betTracks.combinationResult.dealer);
       expect(round.result).toStrictEqual(result);
       expect(round.time).toEqual(new Date(123456));

@@ -33,6 +33,7 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
     let fold = isFold;
     if (isAutoSettle) {
       if (betTracks.communityCards.length >= 3) {
+        const step = betTracks.communityCards.length === 3 ? 'call' : 'turn';
         while (betTracks.communityCards.length < 5) {
           betTracks.communityCards.push(betTracks.deck.shift());
         }
@@ -53,6 +54,7 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
             combinationResult: betTracks.combinationResult,
             dealer: betTracks.dealer,
             totalAmount: Object.values(betTracks.bets).reduce((total, item) => total + item),
+            step,
           },
         });
       } else {
