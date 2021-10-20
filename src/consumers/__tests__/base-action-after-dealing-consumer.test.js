@@ -27,6 +27,7 @@ describe('BaseActionAfterDealingConsumer test', () => {
     maxBetChoice: 'maxBetChoice',
     maxBet: 'maxBet',
     cannotProcessBet: 'cannotProcessBet',
+    placeBetIsProcessingMessage: 'placeBetIsProcessingMessage',
   };
 
   beforeAll(() => {
@@ -179,6 +180,7 @@ describe('BaseActionAfterDealingConsumer test', () => {
           action: actions.call,
           expected: [
             { failure: false, notice: keys.cannotProcessBet },
+            { failure: false, notice: keys.placeBetIsProcessingMessage },
             { failure: false, notice: keys.cannotProcessBet },
           ],
         },
@@ -186,6 +188,7 @@ describe('BaseActionAfterDealingConsumer test', () => {
           action: actions.fold,
           expected: [
             { failure: false, notice: keys.cannotProcessBet },
+            { failure: false, notice: keys.placeBetIsProcessingMessage },
             { failure: false, notice: keys.cannotProcessBet },
           ],
         },
@@ -193,6 +196,7 @@ describe('BaseActionAfterDealingConsumer test', () => {
           action: actions.betTurn,
           expected: [
             { failure: false, notice: keys.cannotProcessBet },
+            { failure: false, notice: keys.placeBetIsProcessingMessage },
             { failure: true, notice: keys.cannotProcessBet },
           ],
         },
@@ -200,6 +204,7 @@ describe('BaseActionAfterDealingConsumer test', () => {
           action: actions.betRiver,
           expected: [
             { failure: false, notice: keys.cannotProcessBet },
+            { failure: false, notice: keys.placeBetIsProcessingMessage },
             { failure: true, notice: keys.cannotProcessBet },
           ],
         },

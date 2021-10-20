@@ -191,6 +191,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
 
   async processCall(player, amount) {
     const { betTracks } = this.gameData.ingame[player.profile.name];
+    betTracks.isDealing = true;
 
     const betInfo = {
       amount,
@@ -205,6 +206,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
     } else {
       this.handleFailPlaceBetResponse(player, response, actions.call);
     }
+    betTracks.isDealing = false;
   }
 
   async handleSuccessCall(player, amount, balance) {
@@ -241,6 +243,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
   async processBetTurn(player, amount) {
     if (amount > 0) {
       const { betTracks } = this.gameData.ingame[player.profile.name];
+      betTracks.isDealing = true;
 
       const betInfo = {
         amount,
@@ -255,6 +258,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       } else {
         this.handleFailPlaceBetResponse(player, response, actions.betTurn);
       }
+      betTracks.isDealing = false;
     } else {
       await this.handleSuccessBetTurn(player, amount);
     }
@@ -293,6 +297,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
   async processBetRiver(player, amount) {
     if (amount > 0) {
       const { betTracks } = this.gameData.ingame[player.profile.name];
+      betTracks.isDealing = true;
 
       const betInfo = {
         amount,
@@ -307,6 +312,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       } else {
         this.handleFailPlaceBetResponse(player, response, actions.betRiver);
       }
+      betTracks.isDealing = false;
     } else {
       await this.handleSuccessBetRiver(player, amount);
     }

@@ -48,10 +48,16 @@ export default class BaseActionAfterDealingConsumer extends BasePlaceBetConsumer
       });
     } else {
       const { betTracks } = playerData;
-      result.push({
-        failure: !betTracks.roundId,
-        notice: translation.t(translation.keys.cannotProcessBet),
-      });
+      result.push(
+        {
+          failure: !betTracks.roundId,
+          notice: translation.t(translation.keys.cannotProcessBet),
+        },
+        {
+          failure: !!betTracks?.isDealing,
+          notice: translation.t(translation.keys.placeBetIsProcessingMessage),
+        },
+      );
       switch (action) {
         case actions.call:
         case actions.fold:
