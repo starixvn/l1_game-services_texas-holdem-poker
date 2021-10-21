@@ -223,6 +223,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       communityCards: betTracks.communityCards,
       combinationResult: betTracks.combinationResult,
       totalAmount: Object.values(betTracks.bets).reduce((total, item) => total + item),
+      choices: betTracks.bets,
     };
 
     this.publisher.publishToUser(player.UID, { endBet: amount, user: balance, call });
@@ -278,6 +279,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       communityCards: betTracks.communityCards,
       combinationResult: betTracks.combinationResult,
       totalAmount: Object.values(betTracks.bets).reduce((total, item) => total + item),
+      choices: betTracks.bets,
     };
     if (amount > 0) {
       this.publisher.publishToUser(player.UID, { endBet: amount, user: balance, turn });
@@ -332,6 +334,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       combinationResult: betTracks.combinationResult,
       dealer: betTracks.dealer,
       totalAmount: Object.values(betTracks.bets).reduce((total, item) => total + item),
+      choices: betTracks.bets,
     };
 
     if (amount > 0) {

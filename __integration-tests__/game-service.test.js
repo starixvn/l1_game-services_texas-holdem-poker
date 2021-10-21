@@ -158,6 +158,8 @@ describe('Texas Holdem Poker Service', () => {
           (card) => card.suit >= 0 && card.suit <= 3,
         );
         expect(data.call.totalAmount).toBe(200);
+        expect(data.call.choices?.ante).toBe(100);
+        expect(data.call.choices?.call).toBe(100);
 
         done();
       }
@@ -187,6 +189,9 @@ describe('Texas Holdem Poker Service', () => {
           (card) => card.suit >= 0 && card.suit <= 3,
         );
         expect(data.turn.totalAmount).toBe(200);
+        expect(data.turn.choices?.ante).toBe(100);
+        expect(data.turn.choices?.call).toBe(100);
+        expect(data.turn.choices?.turn).toBe(0);
 
         done();
       }
@@ -240,7 +245,6 @@ describe('Texas Holdem Poker Service', () => {
 
     // Assert
     gameServiceClient.on(gameNameEvent, (data) => {
-      console.log(data);
       if (data.river && data.endBet && data.user) {
         expect(data.endBet).toBe(100);
         expect(data.user.red).toBe(19700);
@@ -270,6 +274,10 @@ describe('Texas Holdem Poker Service', () => {
           (card) => card.suit >= 0 && card.suit <= 3,
         );
         expect(data.river.totalAmount).toBe(300);
+        expect(data.river.choices?.ante).toBe(100);
+        expect(data.river.choices?.call).toBe(100);
+        expect(data.river.choices?.turn).toBe(0);
+        expect(data.river.choices?.river).toBe(100);
       }
       if (data?.finish) {
         expect(data.finish.settlementResult).toContainAllKeys(['ante', 'call', 'turn', 'river']);

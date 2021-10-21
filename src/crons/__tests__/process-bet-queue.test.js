@@ -537,6 +537,7 @@ describe('Process bet queue test', () => {
         communityCards: betTracks.communityCards,
         combinationResult: betTracks.combinationResult,
         totalAmount: 200,
+        choices: betTracks.bets,
       };
 
       // Act
@@ -676,6 +677,7 @@ describe('Process bet queue test', () => {
       communityCards: betTracks.communityCards,
       combinationResult: betTracks.combinationResult,
       totalAmount: 20,
+      choices: betTracks.bets,
     };
 
     it('should run correctly when amount greater than 0', async () => {
@@ -841,6 +843,7 @@ describe('Process bet queue test', () => {
       combinationResult: betTracks.combinationResult,
       dealer: betTracks.dealer,
       totalAmount: 30,
+      choices: betTracks.bets,
     };
 
     it('should run correctly when amount greater than 0', async () => {
