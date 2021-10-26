@@ -66,7 +66,6 @@ export default class SocketRouter extends TableSocketRouter {
               payload,
             );
             break;
-          case actions.call:
           case actions.doubleCall:
             await this.userCallConsumer.consume(
               this.gameData.realPlayers[this.socketClient.id],

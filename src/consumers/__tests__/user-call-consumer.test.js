@@ -45,27 +45,6 @@ describe('UserCallConsumer test', () => {
       expect(actual).toStrictEqual(expected);
     });
 
-    it('should run expected when action is call and ante has value', async () => {
-      // Arrange
-      const bets = { ante: 10 };
-      const gameData = { ingame: { [player.profile.name]: { betTracks: { bets } } } };
-      const consumer = new UserCallConsumer(definition, gameData);
-      const payload = { action: actions.call };
-      const expected = [];
-      BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria.mockReturnValue(
-        expected,
-      );
-
-      // Act
-      const actual = await consumer.composeActionValidationCriteria(player, payload);
-
-      // Assert
-      expect(
-        BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria,
-      ).toHaveBeenCalledWith(player, bets.ante, configs.maxBetChoices.callBet);
-      expect(actual).toStrictEqual(expected);
-    });
-
     it('should run expected when action is doubleCall and ante has value', async () => {
       // Arrange
       const bets = { ante: 10 };
@@ -129,23 +108,6 @@ describe('UserCallConsumer test', () => {
       expect(BasePlaceBetConsumer.prototype.consume).toHaveBeenCalledWith(player, payload, {
         action: actions.call,
         amount: 0,
-      });
-    });
-
-    it('should run correctly when action is call and bet ante has value', async () => {
-      // Arrange
-      const consumer = new UserCallConsumer();
-      const bets = { ante: 10 };
-      consumer.gameData = { ingame: { [player.profile.name]: { betTracks: { bets } } } };
-      const payload = { action: actions.call };
-
-      // Act
-      await consumer.consume(player, payload);
-
-      // Assert
-      expect(BasePlaceBetConsumer.prototype.consume).toHaveBeenCalledWith(player, payload, {
-        action: actions.call,
-        amount: bets.ante,
       });
     });
 

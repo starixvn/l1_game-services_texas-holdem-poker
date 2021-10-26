@@ -135,7 +135,7 @@ describe('Texas Holdem Poker Service', () => {
 
   it('should return round information when user call', (done) => {
     // Arrange
-    const payload = { action: actions.call };
+    const payload = { action: actions.doubleCall };
 
     // Act
     gameServiceClient.emit(eventTypes.bet, payload);
@@ -143,8 +143,8 @@ describe('Texas Holdem Poker Service', () => {
     // Assert
     gameServiceClient.on(gameNameEvent, (data) => {
       if (data?.call && data.endBet && data.user) {
-        expect(data.endBet).toBe(100);
-        expect(data.user.red).toBe(19800);
+        expect(data.endBet).toBe(200);
+        expect(data.user.red).toBe(19700);
         expect(data.call.communityCards).toBeArrayOfSize(3);
         expect(data.call.communityCards).toSatisfyAll((card) => card.rank >= 0 && card.rank <= 12);
         expect(data.call.communityCards).toSatisfyAll((card) => card.suit >= 0 && card.suit <= 3);
@@ -157,9 +157,9 @@ describe('Texas Holdem Poker Service', () => {
         expect(data.call.combinationResult?.player?.combinationCards).toSatisfyAll(
           (card) => card.suit >= 0 && card.suit <= 3,
         );
-        expect(data.call.totalAmount).toBe(200);
+        expect(data.call.totalAmount).toBe(300);
         expect(data.call.choices?.ante).toBe(100);
-        expect(data.call.choices?.call).toBe(100);
+        expect(data.call.choices?.call).toBe(200);
 
         done();
       }
@@ -188,9 +188,9 @@ describe('Texas Holdem Poker Service', () => {
         expect(data.turn.combinationResult?.player?.combinationCards).toSatisfyAll(
           (card) => card.suit >= 0 && card.suit <= 3,
         );
-        expect(data.turn.totalAmount).toBe(200);
+        expect(data.turn.totalAmount).toBe(300);
         expect(data.turn.choices?.ante).toBe(100);
-        expect(data.turn.choices?.call).toBe(100);
+        expect(data.turn.choices?.call).toBe(200);
         expect(data.turn.choices?.turn).toBe(0);
 
         done();
@@ -200,7 +200,7 @@ describe('Texas Holdem Poker Service', () => {
 
   it('should return round information when user rejoin table', (done) => {
     // Arrange
-    const bets = { ante: 100, call: 100, turn: 0 };
+    const bets = { ante: 100, call: 200, turn: 0 };
 
     // Act
     gameServiceClient.emit(eventTypes.inGame);
@@ -229,7 +229,7 @@ describe('Texas Holdem Poker Service', () => {
         expect(inGameData.ownBets.combinationResult?.player?.combinationCards).toSatisfyAll(
           (card) => card.suit >= 0 && card.suit <= 3,
         );
-        expect(inGameData.ownBets.totalAmount).toBe(200);
+        expect(inGameData.ownBets.totalAmount).toBe(300);
 
         done();
       }
@@ -247,7 +247,7 @@ describe('Texas Holdem Poker Service', () => {
     gameServiceClient.on(gameNameEvent, (data) => {
       if (data.river && data.endBet && data.user) {
         expect(data.endBet).toBe(100);
-        expect(data.user.red).toBe(19700);
+        expect(data.user.red).toBe(19600);
         expect(data.river.dealer).toBeArrayOfSize(2);
         expect(data.river.dealer).toSatisfyAll((card) => card.rank >= 0 && card.rank <= 12);
         expect(data.river.dealer).toSatisfyAll((card) => card.suit >= 0 && card.suit <= 3);
@@ -273,9 +273,9 @@ describe('Texas Holdem Poker Service', () => {
         expect(data.river.combinationResult?.dealer?.combinationCards).toSatisfyAll(
           (card) => card.suit >= 0 && card.suit <= 3,
         );
-        expect(data.river.totalAmount).toBe(300);
+        expect(data.river.totalAmount).toBe(400);
         expect(data.river.choices?.ante).toBe(100);
-        expect(data.river.choices?.call).toBe(100);
+        expect(data.river.choices?.call).toBe(200);
         expect(data.river.choices?.turn).toBe(0);
         expect(data.river.choices?.river).toBe(100);
       }
@@ -309,7 +309,7 @@ describe('Texas Holdem Poker Service', () => {
         expect(data.history.betLogs[0].playerHandId).toBeGreaterThanOrEqual(ranks.highCard);
         expect(data.history.betLogs[0].playerHandId).toBeLessThanOrEqual(ranks.royalFlush);
         expect(data.history.betLogs[0].isFold).toBeFalse();
-        expect(data.history.betLogs[0].stake).toBe(300);
+        expect(data.history.betLogs[0].stake).toBe(400);
         expect(data.history.betLogs[0].betWin).toBeNumber();
 
         done();
@@ -335,10 +335,10 @@ describe('Texas Holdem Poker Service', () => {
         expect(data.ticketDetail.dealer?.handId).toBeLessThanOrEqual(ranks.royalFlush);
 
         expect(data.ticketDetail.bets?.ante).toBe(100);
-        expect(data.ticketDetail.bets?.call).toBe(100);
+        expect(data.ticketDetail.bets?.call).toBe(200);
         expect(data.ticketDetail.bets?.turn).toBe(0);
         expect(data.ticketDetail.bets?.river).toBe(100);
-        expect(data.ticketDetail.bets?.bet).toBe(300);
+        expect(data.ticketDetail.bets?.bet).toBe(400);
         expect(data.ticketDetail.bets?.result?.ante).toBeNumber();
         expect(data.ticketDetail.bets?.result?.call).toBeNumber();
         expect(data.ticketDetail.bets?.result?.turn).toBe(0);

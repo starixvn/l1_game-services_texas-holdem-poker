@@ -94,23 +94,6 @@ describe('Socket router test', () => {
       expect(router.userFoldConsumer.consume).toHaveBeenCalledWith(realPlayer, payload);
     });
 
-    it('should call user call when action call', async () => {
-      // Arrange
-      const router = new SocketRouter({});
-      const payload = { action: actions.call };
-      router.verify = jest.fn().mockReturnValue(true);
-      router.userCallConsumer = { consume: jest.fn() };
-      router.socketClient = { id: 1 };
-      const realPlayer = { uid: 123 };
-      router.gameData = { realPlayers: { 1: realPlayer } };
-
-      // Act
-      await router.handlePlaceBet(payload);
-
-      // Assert
-      expect(router.userCallConsumer.consume).toHaveBeenCalledWith(realPlayer, payload);
-    });
-
     it('should call user call when action doubleCall', async () => {
       // Arrange
       const router = new SocketRouter({});
