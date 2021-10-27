@@ -44,7 +44,7 @@
     }
   },
   "sentry": {
-    "sentryUrl": "http://b5372e645c48448196026a679c60a3b0@10.2.189.50:9009/154",
+    "sentryUrl": "http://2ed40503633f44f082801d7d8cd12263@10.2.189.50:9009/89",
     "logIdentifier": "texas-holdem-poker-service",
     "env": "PRO"
   },
