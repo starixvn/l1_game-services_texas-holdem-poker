@@ -60,5 +60,5 @@
   "marketConfigCacheTimeout": 10000,
   "userSiteUrl": "http://localhost:7780",
   "enableCron": true,
-  "roundMaxDurationInMinutes": 1440
+  "roundMaxDurationInMinutes": 3
 }

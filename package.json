@@ -8,8 +8,11 @@
     "debug": "nodemon --es-module-specifier-resolution=node --watch ./ --inspect ./src/app.js",
     "prod": "node --max-old-space-size=8192 --es-module-specifier-resolution=node ./src/app.js",
     "reg": "npm set registry http://npm.lumigame.com",
-    "test": "jest",
-    "test-coverage": "jest --collect-coverage"
+    "test": "jest --testPathPattern=src/",
+    "test-coverage": "jest --collect-coverage --testPathPattern=src/",
+    "test-:-integration-:-setup-test-data": "node --es-module-specifier-resolution=node ./__integration-tests__/stubs/test-data-setup.js",
+    "test-:-integration-:-start-service": "node --es-module-specifier-resolution=node ./__integration-tests__/game-service-setup/game-service-app.js",
+    "test-:-integration-:-start-test": "jest --testPathPattern=__integration-tests__/  --detectOpenHandles --ci --reporters=default --reporters=jest-junit"
   },
   "jestSonar": {
     "reportPath": "reports",
@@ -27,6 +30,7 @@
     "@babel/preset-env": "^7.14.7",
     "@commitlint/cli": "^9.1.2",
     "@commitlint/config-conventional": "^9.1.2",
+    "@nex3/game-service-integration": "1.0.1-beta.7",
     "@semantic-release/changelog": "^5.0.1",
     "@semantic-release/commit-analyzer": "^8.0.1",
     "@semantic-release/git": "^9.0.0",
@@ -39,6 +43,8 @@
     "install": "^0.13.0",
     "jest": "^27.0.6",
     "jest-extended": "^0.11.5",
+    "jest-junit": "^12.3.0",
+    "jest-junit-reporter": "^1.1.0",
     "jest-micro-auto-stub": "^1.0.7",
     "jest-sonar-reporter": "^2.0.0",
     "sc-semantic-release": "^1.2.0",
@@ -48,5 +54,8 @@
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
+  },
+  "jest": {
+    "testResultsProcessor": "jest-junit"
   }
 }

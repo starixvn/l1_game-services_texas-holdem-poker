@@ -118,7 +118,7 @@ export default class GameCron extends BaseGameCron {
             (userBet) =>
               userBet.betTracks && moment(userBet.betTracks.roundStartTime) < expiredTime,
           )
-          .map((userBet) => this.settleGameRoundConsumer.settleRound(userBet.name, true)),
+          .map((userBet) => this.settleGameRoundConsumer.settleRound(userBet.name, false, true)),
       );
     }
   }

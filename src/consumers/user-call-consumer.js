@@ -11,10 +11,7 @@ export default class UserCallConsumer extends BaseActionAfterDealingConsumer {
       player.session?.language,
     );
     const { betTracks } = this.gameData.ingame[player.profile.name] || { betTracks: {} };
-    let amount = betTracks.bets?.ante || 0;
-    if (payload.action === actions.doubleCall) {
-      amount *= 2;
-    }
+    const amount = betTracks.bets?.ante * 2 || 0;
     return super.composeActionValidationCriteria(player, amount, configs.maxBetChoices.callBet);
   }
 
@@ -24,10 +21,7 @@ export default class UserCallConsumer extends BaseActionAfterDealingConsumer {
 
   async consume(player, payload) {
     const { betTracks } = this.gameData.ingame[player.profile.name] || { betTracks: {} };
-    let amount = betTracks.bets?.ante || 0;
-    if (payload.action === actions.doubleCall) {
-      amount *= 2;
-    }
+    const amount = betTracks.bets?.ante * 2 || 0;
     await super.consume(player, payload, { action: actions.call, amount });
   }
 }

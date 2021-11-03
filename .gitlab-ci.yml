@@ -5,3 +5,33 @@ include:
   - project: "ci/repos-ci/nex3_l3_texas_holdem_poker_service"
     ref: master
     file: "gitlab-ci.yml"
+
+integration-tests:
+  stage: test
+  tags:
+    - docker
+
+  services:
+    - name: mongo:4.4.8
+      alias: mongo
+      
+  image: registry.nexdev.net:5050/docker/node:14.15.1-slim
+  before_script:
+    - cp ./src/configs/configs.IGT.json ./src/configs/configs.IGT.original.js
+    - cp ./src/configs/configs.IGT-CI.json ./src/configs/configs.IGT.json
+    - npm set registry http://npm.lumigame.com
+    - yarn install
+    - npm run test-:-integration-:-setup-test-data
+    - nohup npm run test-:-integration-:-start-service &
+
+  script:
+    - npm run test-:-integration-:-start-test
+
+  artifacts:
+    when: always
+    paths:
+      - ./coverage
+    reports:
+      junit:
+        - junit.xml
+    expire_in: 1 day

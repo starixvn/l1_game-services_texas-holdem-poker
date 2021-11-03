@@ -3,7 +3,7 @@ import { deal, generateDecks, reGenerateDecks } from '../helpers/deck-helper';
 import { getCombinationResult } from '../helpers/result-helper';
 import Translation from '@nex3/translation';
 import { helpers } from 'sc-common';
-import { actions } from '../helpers/constants';
+import { actions, ranks } from '../helpers/constants';
 
 export default class ProcessBetQueue extends BaseProcessBetQueue {
   constructor({
@@ -46,6 +46,12 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
           break;
         case actions.fold:
           await this.settleGameRoundConsumer.settleRound(player.profile.name, true);
+          break;
+        case actions.betTurn:
+          await this.processBetTurn(player, payload.amount);
+          break;
+        case actions.betRiver:
+          await this.processBetRiver(player, payload.amount);
           break;
       }
     } catch (e) {
@@ -121,18 +127,36 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
     const newRound = await this.createRound(player, roundId);
     betTracks.roundId = newRound.id;
     betTracks.roundStartTime = new Date();
+    betTracks.combinationResult.player = this.getCombinationResultWhenDeal(betTracks.player);
     await this.createBet(player);
 
     this.publisher.publishToUser(player.UID, {
       deal: {
         roundId: betTracks.roundId,
         player: betTracks.player,
+        combinationResult: betTracks.combinationResult,
         totalAmount: betTracks.bets.ante,
         choices: betTracks.bets,
       },
-      endBet: betTracks.bets.ante + betTracks.bets.aa,
+      endBet: betTracks.bets.ante,
       user: balance,
     });
+  }
+
+  getCombinationResultWhenDeal(cards) {
+    if (cards[0].rank === cards[1].rank) {
+      return {
+        id: ranks.onePair,
+        combinationCards: cards,
+        cards,
+      };
+    } else {
+      return {
+        id: ranks.highCard,
+        combinationCards: (cards[0].rank || 13) > (cards[1].rank || 13) ? [cards[0]] : [cards[1]],
+        cards,
+      };
+    }
   }
 
   async createRound(player, roundId) {
@@ -158,6 +182,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       ante: betTracks.bets?.ante,
       cards: betTracks.player,
       bet: betTracks.bets?.ante,
+      result: betTracks.combinationResult.player,
       time: new Date(),
       memberId: player.session?.memberId,
       siteId: player.session?.siteId,
@@ -166,6 +191,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
 
   async processCall(player, amount) {
     const { betTracks } = this.gameData.ingame[player.profile.name];
+    betTracks.isDealing = true;
 
     const betInfo = {
       amount,
@@ -180,6 +206,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
     } else {
       this.handleFailPlaceBetResponse(player, response, actions.call);
     }
+    betTracks.isDealing = false;
   }
 
   async handleSuccessCall(player, amount, balance) {
@@ -196,6 +223,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       communityCards: betTracks.communityCards,
       combinationResult: betTracks.combinationResult,
       totalAmount: Object.values(betTracks.bets).reduce((total, item) => total + item),
+      choices: betTracks.bets,
     };
 
     this.publisher.publishToUser(player.UID, { endBet: amount, user: balance, call });
@@ -210,24 +238,30 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       betTracks.deck.shift(),
       betTracks.deck.shift(),
     );
-    updateCombinationPlayerResultInBetTracks(playerName);
+    this.updateCombinationPlayerResultInBetTracks(playerName);
   }
 
   async processBetTurn(player, amount) {
-    const { betTracks } = this.gameData.ingame[player.profile.name];
+    if (amount > 0) {
+      const { betTracks } = this.gameData.ingame[player.profile.name];
+      betTracks.isDealing = true;
 
-    const betInfo = {
-      amount,
-      gameId: this.definition.id,
-      gameRoundId: betTracks.roundId,
-      choiceId: this.definition.choicesMapper.turn,
-    };
-    const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
-    const { response } = apiResult;
-    if (apiResult.isOk) {
-      await this.handleSuccessBetTurn(player, amount, response);
+      const betInfo = {
+        amount,
+        gameId: this.definition.id,
+        gameRoundId: betTracks.roundId,
+        choiceId: this.definition.choicesMapper.turn,
+      };
+      const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
+      const { response } = apiResult;
+      if (apiResult.isOk) {
+        await this.handleSuccessBetTurn(player, amount, response);
+      } else {
+        this.handleFailPlaceBetResponse(player, response, actions.betTurn);
+      }
+      betTracks.isDealing = false;
     } else {
-      this.handleFailPlaceBetResponse(player, response, actions.betTurn);
+      await this.handleSuccessBetTurn(player, amount);
     }
   }
 
@@ -245,9 +279,13 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       communityCards: betTracks.communityCards,
       combinationResult: betTracks.combinationResult,
       totalAmount: Object.values(betTracks.bets).reduce((total, item) => total + item),
+      choices: betTracks.bets,
     };
-
-    this.publisher.publishToUser(player.UID, { endBet: amount, user: balance, turn });
+    if (amount > 0) {
+      this.publisher.publishToUser(player.UID, { endBet: amount, user: balance, turn });
+    } else {
+      this.publisher.publishToUser(player.UID, { turn });
+    }
   }
 
   updateBetTracksAfterBetTurn(playerName, amount) {
@@ -255,24 +293,30 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
 
     betTracks.bets.turn = amount;
     betTracks.communityCards.push(betTracks.deck.shift());
-    updateCombinationPlayerResultInBetTracks(playerName);
+    this.updateCombinationPlayerResultInBetTracks(playerName);
   }
 
   async processBetRiver(player, amount) {
-    const { betTracks } = this.gameData.ingame[player.profile.name];
+    if (amount > 0) {
+      const { betTracks } = this.gameData.ingame[player.profile.name];
+      betTracks.isDealing = true;
 
-    const betInfo = {
-      amount,
-      gameId: this.definition.id,
-      gameRoundId: betTracks.roundId,
-      choiceId: this.definition.choicesMapper.river,
-    };
-    const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
-    const { response } = apiResult;
-    if (apiResult.isOk) {
-      await this.handleSuccessBetRiver(player, amount, response);
+      const betInfo = {
+        amount,
+        gameId: this.definition.id,
+        gameRoundId: betTracks.roundId,
+        choiceId: this.definition.choicesMapper.river,
+      };
+      const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
+      const { response } = apiResult;
+      if (apiResult.isOk) {
+        await this.handleSuccessBetRiver(player, amount, response);
+      } else {
+        this.handleFailPlaceBetResponse(player, response, actions.betRiver);
+      }
+      betTracks.isDealing = false;
     } else {
-      this.handleFailPlaceBetResponse(player, response, actions.betRiver);
+      await this.handleSuccessBetRiver(player, amount);
     }
   }
 
@@ -290,9 +334,14 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       combinationResult: betTracks.combinationResult,
       dealer: betTracks.dealer,
       totalAmount: Object.values(betTracks.bets).reduce((total, item) => total + item),
+      choices: betTracks.bets,
     };
 
-    this.publisher.publishToUser(player.UID, { endBet: amount, user: balance, river });
+    if (amount > 0) {
+      this.publisher.publishToUser(player.UID, { endBet: amount, user: balance, river });
+    } else {
+      this.publisher.publishToUser(player.UID, { river });
+    }
 
     await this.settleGameRoundConsumer.settleRound(player.profile.name);
   }
@@ -303,7 +352,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
     betTracks.bets.river = amount;
     betTracks.communityCards.push(betTracks.deck.shift());
 
-    updateCombinationPlayerResultInBetTracks(playerName);
+    this.updateCombinationPlayerResultInBetTracks(playerName);
     const combinationDealerResult = getCombinationResult(
       betTracks.dealer.concat(betTracks.communityCards),
     );

@@ -8,10 +8,8 @@ export const ranks = {
   threeKind: 4,
   twoPairs: 3,
   onePair: 2,
-  highCards: 1,
+  highCard: 1,
 };
-
-// export const steps = { deal: 1, call: 2, turn: 3, river: 4 };
 
 export const actions = {
   deal: 'deal',
