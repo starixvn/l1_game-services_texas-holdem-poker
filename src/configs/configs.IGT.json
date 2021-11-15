@@ -3,8 +3,8 @@
   "hostingPort": 5001,
   "apiSettings": {
     "enabledApi": true,
-    "apiUrl": "http://l3-api-proxy.nexdev.net/local2/game-api",
-    "authUrl": "http://l3-auth-2.nexdev.net",
+    "apiUrl": "http://l3_game_api_local_2:5000",
+    "authUrl": "http://l3_auth_api_local_2:5000",
     "client": {
       "id": "game-server",
       "secret": "gameserver@20luminet&"
@@ -15,9 +15,9 @@
     "enableApiLogs": true
   },
   "mainServerApiSettings": {
-    "url": "http://l3-api-proxy.nexdev.net/local2/game-server/api",
+    "url": "http://l3_game_server_local_2:5000/api",
     "auth": {
-      "url": "http://l3-auth-2.nexdev.net",
+      "url": "http://l3_auth_api_local_2:5000",
       "id": "game-services",
       "secret": "gameservices@20luminet&"
     },
@@ -59,6 +59,6 @@
     "http://admin.lumigame.com"
   ],
   "marketConfigCacheTimeout": 10000,
-  "userSiteUrl": "http://localhost:7780",
+  "userSiteUrl": "http://l3_user_site_local_2:5000",
   "enableCron": true
 }
