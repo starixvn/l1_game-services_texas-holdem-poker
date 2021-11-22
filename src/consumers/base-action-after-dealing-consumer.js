@@ -8,11 +8,7 @@ import { actions } from '../helpers/constants';
 export default class BaseActionAfterDealingConsumer extends BasePlaceBetConsumer {
   async composeActionValidationCriteria(player, amount, maxBetChoice) {
     const marketManagement = MarketManagement.getInstance();
-    const configs = await marketManagement.getGameMarketConfig(
-      this.definition.id,
-      player.session?.currency,
-      player.session?.language,
-    );
+    const configs = await marketManagement.getGameMarketConfig(this.definition.id, player.session);
     const resource = await loadLanguage(player?.session?.language);
     const translation = Translation.getInstance(player?.session?.language, resource);
     const formatNumberWithComma = helpers.numberHelper.formatNumberWithComma;

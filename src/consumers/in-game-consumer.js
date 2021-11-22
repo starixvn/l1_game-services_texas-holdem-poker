@@ -33,8 +33,7 @@ export default class InGameConsumer extends BaseInGameConsumer {
     const marketManagement = MarketManagement.getInstance();
     const marketConfig = await marketManagement.getGameMarketConfig(
       this.definition.id,
-      realPlayer?.session?.currency,
-      realPlayer?.session?.language,
+      realPlayer?.session,
     );
 
     const gameConfigs = {

@@ -15,7 +15,7 @@
     "enabledApiLogs": true
   },
   "mainServerApiSettings": {
-    "url": "http://l3-api-proxy.nexdev.net/local2/game-server/api",
+    "url": "http://l3-api-proxy.nexdev.net/local2/main/api",
     "auth": {
       "url": "http://l3-auth-2.nexdev.net",
       "id": "game-services",

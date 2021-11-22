@@ -5,11 +5,7 @@ import { actions } from '../helpers/constants';
 export default class UserCallConsumer extends BaseActionAfterDealingConsumer {
   async composeActionValidationCriteria(player, payload) {
     const marketManagement = MarketManagement.getInstance();
-    const configs = await marketManagement.getGameMarketConfig(
-      this.definition.id,
-      player.session?.currency,
-      player.session?.language,
-    );
+    const configs = await marketManagement.getGameMarketConfig(this.definition.id, player.session);
     const { betTracks } = this.gameData.ingame[player.profile.name] || { betTracks: {} };
     const amount = betTracks.bets?.ante * 2 || 0;
     return super.composeActionValidationCriteria(player, amount, configs.maxBetChoices.callBet);

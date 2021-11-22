@@ -5,11 +5,7 @@ import { actions } from '../helpers/constants';
 export default class UserBetRiverConsumer extends BaseActionAfterDealingConsumer {
   async composeActionValidationCriteria(player, payload) {
     const marketManagement = MarketManagement.getInstance();
-    const configs = await marketManagement.getGameMarketConfig(
-      this.definition.id,
-      player.session?.currency,
-      player.session?.language,
-    );
+    const configs = await marketManagement.getGameMarketConfig(this.definition.id, player.session);
     const { betTracks } = this.gameData.ingame[player.profile.name] || { betTracks: {} };
     let amount = betTracks.bets?.ante || 0;
     if (payload.action === actions.checkRiver) {

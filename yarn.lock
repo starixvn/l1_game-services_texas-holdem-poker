@@ -1442,6 +1442,16 @@
   dependencies:
     "@nex3/nex3-game-base" "^1.2.0"
 
+"@nex3/market-management@1.6.0-beta.4":
+  version "1.6.0-beta.4"
+  resolved "http://npm.lumigame.com/@nex3%2fmarket-management/-/market-management-1.6.0-beta.4.tgz#fbb53a6cc0a6759493ea960e9d946b465d2f2815"
+  integrity sha512-xGWZXBTwY0ciVBKtAPBoRaSy34YXYlo+WaTE+MX5YljBTft3z45TMTEIwPXU33qQrm+F4qc1p/V1itu4Cke/JQ==
+  dependencies:
+    "@nex3/memory-cache" "^1.0.2"
+    "@nex3/translation" "^1.7.0"
+    mongoose "^5.10.11"
+    ramda "^0.27.1"
+
 "@nex3/market-management@^1.6.0":
   version "1.6.0"
   resolved "http://npm.lumigame.com/@nex3%2fmarket-management/-/market-management-1.6.0.tgz#2f4c4851dca3aa68324e13e2c1962a65a46f0a9f"
@@ -1457,7 +1467,25 @@
   resolved "http://npm.lumigame.com/@nex3%2fmemory-cache/-/memory-cache-1.0.2.tgz#556bd805fd9728cfc6da5da4529fd86905937ef5"
   integrity sha512-7PlBgeRX4sThgLlLBqXGGlBQruM9LyEmY5w/B0mFhNIoc8wymdhiyJ/pn9FTSmj/sw36N0wuKDYSsrnw/23PxQ==
 
-"@nex3/nex3-game-base@1.2.2", "@nex3/nex3-game-base@^1.2.0":
+"@nex3/nex3-game-base@1.2.2-beta.6":
+  version "1.2.2-beta.6"
+  resolved "http://npm.lumigame.com/@nex3%2fnex3-game-base/-/nex3-game-base-1.2.2-beta.6.tgz#1b5e71410b8b8c4775b56c46ad64bec5cde5a3c2"
+  integrity sha512-HJEJI9JPsp07Dh2fnYR/oUICKrKs7OqMHmlPeF8HZ0Tat5e7G2xwlLyWD8OhmWGIuz6xXxwZdDtDHMJMlAwWvA==
+  dependencies:
+    "@nex3/market-management" "1.6.0-beta.4"
+    "@nex3/translation" "^1.8.2"
+    "@nex3/user-client" "1.8.2-dev.2"
+    chance "^1.1.7"
+    jest-auto-stub "^1.0.8"
+    jest-when "^3.3.1"
+    random "^2.2.0"
+    random-js "^2.1.0"
+    sc-base-apis "^1.7.0"
+    sc-base-database "^1.4.0"
+    sc-common "^1.7.0"
+    sc-game-base "1.24.1"
+
+"@nex3/nex3-game-base@^1.2.0":
   version "1.2.2"
   resolved "http://npm.lumigame.com/@nex3%2fnex3-game-base/-/nex3-game-base-1.2.2.tgz#29dc3f56f0c0169a95ae438fdeceecb4fede722e"
   integrity sha512-KdVb3bagrQh2kZB9bzvQGqNA6GuiB1L+O/2a93iZ3ou6h3MHs/+Q+fn/Kxw/UN7YqsWbtdSjemx8OUNXsPeQXw==

@@ -28,8 +28,7 @@ export default class BasePlaceBetConsumer {
     const marketManagement = MarketManagement.getInstance();
     const gameMarketConfigs = await marketManagement.getGameMarketConfig(
       this.definition.id,
-      player.session.currency,
-      player?.session?.language,
+      player.session,
     );
 
     return [
