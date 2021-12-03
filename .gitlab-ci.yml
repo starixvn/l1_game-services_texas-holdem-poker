@@ -8,11 +8,13 @@ include:
 
 integration-tests:
   stage: test
+  needs: ['unit-test-js']
+
   tags:
     - docker
 
   services:
-    - name: mongo:4.4.8
+    - name: registry.nexdev.net:5050/docker/database/mongo:4.4.8
       alias: mongo
       
   image: registry.nexdev.net:5050/docker/node:14.15.1-slim
