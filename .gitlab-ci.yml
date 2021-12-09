@@ -6,6 +6,18 @@ include:
     ref: master
     file: "gitlab-ci.yml"
 
+.if-deploy-local: &if-deploy-local
+  if: '$CI_COMMIT_TAG =~ /local/'
+
+.if-deploy-sit: &if-deploy-sit
+  if: '$CI_COMMIT_TAG =~ /sit/'
+
+.if-deploy-uat: &if-deploy-uat
+  if: '$CI_COMMIT_TAG =~ /uat/'
+
+.if-deploy-prod: &if-deploy-prod
+  if: '$CI_COMMIT_TAG =~ /prod/'
+
 integration-tests:
   stage: test
 
@@ -28,6 +40,16 @@ integration-tests:
   script:
     - npm run test-:-integration-:-start-test
 
+  rules:
+    - <<: *if-deploy-local
+      when: never
+    - <<: *if-deploy-sit
+      when: never
+    - <<: *if-deploy-uat
+      when: never
+    - <<: *if-deploy-prod
+      when: never
+    - when: always
   artifacts:
     when: always
     paths:
