@@ -3,29 +3,12 @@ import BasePlaceBetConsumer from '../base-place-bet-consumer';
 import BaseActionAfterDealingConsumer from '../base-action-after-dealing-consumer';
 import UserFoldConsumer from '../user-fold-consumer';
 import { actions } from '../../helpers/constants';
-import Translation from '@nex3/translation';
-
-jest.mock('@nex3/translation');
 
 describe('UserFoldConsumer test', () => {
   const definition = new Core.GameDefinition({ id: 1, name: 'texas-holdem-poker' });
   const gameData = new Table.TableGameData();
   const publisher = {};
   const logService = { logWarning: jest.fn() };
-  const keys = {
-    maxBetChoice: 'maxBetChoice',
-    maxBet: 'maxBet',
-    minBet: 'minBet',
-    invalidDealDueToRunningRound: 'invalidDealDueToRunningRound',
-    placeBetIsProcessingMessage: 'placeBetIsProcessingMessage',
-  };
-
-  beforeAll(() => {
-    Translation.getInstance = jest.fn().mockReturnValue({
-      t: jest.fn((key, b) => key),
-      keys,
-    });
-  });
 
   it('inherit BaseActionAfterDealingConsumer', () => {
     // Act

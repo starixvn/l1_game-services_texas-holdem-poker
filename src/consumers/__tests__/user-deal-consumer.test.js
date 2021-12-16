@@ -2,24 +2,15 @@ import { Core, Table } from 'sc-game-base';
 import BasePlaceBetConsumer from '../base-place-bet-consumer';
 import UserDealConsumer from '../user-deal-consumer';
 import { actions } from '../../helpers/constants';
-import Translation from '@nex3/translation';
-import MarketManagement from '@nex3/market-management';
 
 jest.mock('sc-common', () => {
   return {
     helpers: { numberHelper: { formatNumberWithComma: jest.fn((number) => number) } },
   };
 });
-jest.mock('../../resources/translation/languages', () => {
-  return {
-    loadLanguage: jest.fn().mockReturnValue({}),
-  };
-});
-jest.mock('@nex3/translation');
-jest.mock('@nex3/market-management');
 
 describe('UserDealConsumer test', () => {
-  const definition = new Core.GameDefinition({ id: 1, name: 'casino-holdem-poker' });
+  const definition = new Core.GameDefinition({ id: 1, name: 'texas-holdem-poker' });
   const gameData = new Table.TableGameData();
   const publisher = {};
   const logService = {};
@@ -30,13 +21,6 @@ describe('UserDealConsumer test', () => {
     invalidDealDueToRunningRound: 'invalidDealDueToRunningRound',
     placeBetIsProcessingMessage: 'placeBetIsProcessingMessage',
   };
-
-  beforeAll(() => {
-    Translation.getInstance = jest.fn().mockReturnValue({
-      t: jest.fn((key, b) => key),
-      keys,
-    });
-  });
 
   it('inherit BasePlaceBetConsumer', () => {
     // Act
@@ -67,11 +51,6 @@ describe('UserDealConsumer test', () => {
         notice: keys.maxBet,
       },
     ];
-    beforeAll(() => {
-      MarketManagement.getInstance = jest.fn().mockReturnValue({
-        getGameMarketConfig: jest.fn().mockReturnValue(configs),
-      });
-    });
     it('should return expected', async () => {
       // Arrange
       const consumer = new UserDealConsumer(definition, gameData, publisher, logService);

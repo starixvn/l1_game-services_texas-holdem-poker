@@ -1,5 +1,4 @@
 import moment from 'moment';
-import { GameCron as BaseGameCron } from '@nex3/nex3-game-base/crons';
 import { reGenerateDecks } from '../../helpers/deck-helper';
 import GameCron from '../game-cron';
 
@@ -8,14 +7,6 @@ jest.mock('sc-common');
 jest.mock('../../helpers/deck-helper');
 
 describe('Game Cron test', () => {
-  it('inherit BaseGameCron', () => {
-    // Act
-    const game = new GameCron({});
-
-    // Assert
-    expect(game instanceof BaseGameCron);
-  });
-
   describe('start', () => {
     it('should set last roundId when have last round', async () => {
       // Arrange

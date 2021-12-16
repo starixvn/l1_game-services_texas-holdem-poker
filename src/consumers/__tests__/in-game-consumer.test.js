@@ -1,22 +1,12 @@
 import { Core, Table } from 'sc-game-base';
-import { InGameConsumer as BaseInGameConsumer } from '@nex3/nex3-game-base/consumers';
 import InGameConsumer from '../in-game-consumer';
-import MarketManagement from '@nex3/market-management';
 
 jest.mock('sc-base-database');
-jest.mock('@nex3/market-management');
 
 describe('InGameConsumer test', () => {
   // Arrange
   const definition = new Core.GameDefinition({ id: 1, name: 'texasholdempoker' });
   const gameData = new Table.TableGameData();
-  it('inherit BaseInGameConsumer', () => {
-    // Act
-    const consumer = new InGameConsumer(definition, gameData);
-
-    // Assert
-    expect(consumer instanceof BaseInGameConsumer);
-  });
 
   describe('consume', () => {
     let socketClient;

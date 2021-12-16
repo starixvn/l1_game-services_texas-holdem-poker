@@ -2,9 +2,6 @@ import BasePlaceBetConsumer from '../base-place-bet-consumer';
 import BaseActionAfterDealingConsumer from '../base-action-after-dealing-consumer';
 import UserBetTurnConsumer from '../user-bet-turn-consumer';
 import { actions } from '../../helpers/constants';
-import MarketManagement from '@nex3/market-management';
-
-jest.mock('@nex3/market-management');
 
 describe('UserBetTurnConsumer test', () => {
   it('inherit BaseActionAfterDealingConsumer', () => {
@@ -19,12 +16,7 @@ describe('UserBetTurnConsumer test', () => {
     const definition = { id: 1 };
     const player = { profile: { name: 'a' } };
     const configs = { maxBetChoices: { turnBet: 100 } };
-    beforeAll(() => {
-      MarketManagement.getInstance = jest
-        .fn()
-        .mockReturnValue({ getGameMarketConfig: jest.fn().mockReturnValue(configs) });
-      BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria = jest.fn();
-    });
+    
     it('should run expected when betTracks empty and action is betTurn', async () => {
       // Arrange
       const gameData = { ingame: {} };

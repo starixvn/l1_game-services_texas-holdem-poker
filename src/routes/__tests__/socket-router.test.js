@@ -1,4 +1,4 @@
-import { TableSocketRouter } from '@nex3/nex3-game-base/routes';
+import { BaseSocketRouter } from "sc-game-base/src/core/routers";
 import SocketRouter from '../socket-router';
 import { actions } from '../../helpers/constants';
 
@@ -8,14 +8,14 @@ describe('Socket router test', () => {
     const router = new SocketRouter({});
 
     // Assert
-    expect(router instanceof TableSocketRouter);
+    expect(router instanceof BaseSocketRouter);
   });
 
   describe('init', () => {
     it('should run correctly', () => {
       // Arrange
       const router = new SocketRouter({});
-      TableSocketRouter.prototype.init = jest.fn();
+      BaseSocketRouter.prototype.init = jest.fn();
       const socket = { on: jest.fn() };
       router.socketClient = socket;
 
@@ -23,7 +23,7 @@ describe('Socket router test', () => {
       router.init(socket);
 
       // Assert
-      expect(TableSocketRouter.prototype.init).toHaveBeenCalledWith(socket);
+      expect(BaseSocketRouter.prototype.init).toHaveBeenCalledWith(socket);
       expect(socket.on).toHaveBeenCalledWith('getTicketDetail', expect.any(Function));
     });
   });

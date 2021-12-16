@@ -2,9 +2,6 @@ import BasePlaceBetConsumer from '../base-place-bet-consumer';
 import BaseActionAfterDealingConsumer from '../base-action-after-dealing-consumer';
 import UserBetRiverConsumer from '../user-bet-river-consumer';
 import { actions } from '../../helpers/constants';
-import MarketManagement from '@nex3/market-management';
-
-jest.mock('@nex3/market-management');
 
 describe('UserBetRiverConsumer test', () => {
   it('inherit BaseActionAfterDealingConsumer', () => {
@@ -19,12 +16,7 @@ describe('UserBetRiverConsumer test', () => {
     const definition = { id: 1 };
     const player = { profile: { name: 'a' } };
     const configs = { maxBetChoices: { riverBet: 100 } };
-    beforeAll(() => {
-      MarketManagement.getInstance = jest
-        .fn()
-        .mockReturnValue({ getGameMarketConfig: jest.fn().mockReturnValue(configs) });
-      BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria = jest.fn();
-    });
+
     it('should run expected when betTracks empty and action is betRiver', async () => {
       // Arrange
       const gameData = { ingame: {} };

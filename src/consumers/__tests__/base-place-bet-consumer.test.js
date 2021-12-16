@@ -1,11 +1,6 @@
 import { Core, Table } from 'sc-game-base';
 import BasePlaceBetConsumer from '../base-place-bet-consumer';
-import Translation from '@nex3/translation';
-import MarketManagement from '@nex3/market-management';
 import { actions } from '../../helpers/constants';
-
-jest.mock('@nex3/translation');
-jest.mock('@nex3/market-management');
 
 describe('BasePlaceBetConsumer test', () => {
   const definition = new Core.GameDefinition({ id: 1, name: 'casino-holdem-poker' });
@@ -74,19 +69,12 @@ describe('BasePlaceBetConsumer test', () => {
       const gameConfigs = { enabled: true, disabled_message: 'disabled' };
       const data = { gameConfigs };
       const consumer = new BasePlaceBetConsumer(definition, data, publisher, logService);
-      const gameMarketConfigs = { enabled: true, disabledMessage: 'disabled market' };
-      MarketManagement.getInstance = jest.fn().mockReturnValue({
-        getGameMarketConfig: jest.fn().mockReturnValue(gameMarketConfigs),
-      });
+
       const expected = [
         {
           failure: !gameConfigs.enabled,
           notice: gameConfigs.disabled_message,
-        },
-        {
-          failure: !gameMarketConfigs.enabled,
-          notice: gameMarketConfigs.disabledMessage,
-        },
+        }
       ];
 
       // Act

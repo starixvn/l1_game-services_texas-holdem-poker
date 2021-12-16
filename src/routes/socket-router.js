@@ -1,7 +1,7 @@
-import { TableSocketRouter } from '@nex3/nex3-game-base/routes';
+import { BaseSocketRouter } from "sc-game-base/src/core/routers";
 import { actions } from '../helpers/constants';
 
-export default class SocketRouter extends TableSocketRouter {
+export default class SocketRouter extends BaseSocketRouter {
   constructor({
     definition,
     gameData,
@@ -12,7 +12,7 @@ export default class SocketRouter extends TableSocketRouter {
     userSignInPublisher,
     historyQuery,
     logService,
-    changeLanguageConsumer,
+    playGamePermissionValidator,
     getGameConfigsConsumer,
     userDealConsumer = null,
     userCallConsumer = null,
@@ -30,10 +30,10 @@ export default class SocketRouter extends TableSocketRouter {
       userSignInPublisher,
       historyQuery,
       logService,
-      changeLanguageConsumer,
-      getGameConfigsConsumer,
+      playGamePermissionValidator
     });
 
+    this.getGameConfigsConsumer = getGameConfigsConsumer;
     this.userDealConsumer = userDealConsumer;
     this.userCallConsumer = userCallConsumer;
     this.userFoldConsumer = userFoldConsumer;
@@ -45,6 +45,7 @@ export default class SocketRouter extends TableSocketRouter {
     super.init(socketClient);
 
     this.socketClient.on('getTicketDetail', this.handleGetTicketDetail.bind(this));
+    this.socketClient.on("getGameConfigs", this.handleGetGameConfigs.bind(this));
   }
 
   async handlePlaceBet(payload) {
@@ -105,6 +106,14 @@ export default class SocketRouter extends TableSocketRouter {
       );
 
       this.socketClient.emit(this.definition.name, ticketDetail);
+    } catch (error) {
+      this.logService.logError(error);
+    }
+  }
+
+  async handleGetGameConfigs() {
+    try {
+      await this.getGameConfigsConsumer.consume(this.gameData.realPlayers[this.socketClient.id]);
     } catch (error) {
       this.logService.logError(error);
     }

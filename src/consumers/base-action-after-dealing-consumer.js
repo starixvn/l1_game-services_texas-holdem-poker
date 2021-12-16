@@ -1,20 +1,12 @@
 import BasePlaceBetConsumer from './base-place-bet-consumer';
 import { helpers } from 'sc-common';
-import { loadLanguage } from '../resources/translation/languages';
-import Translation from '@nex3/translation';
-import MarketManagement from '@nex3/market-management';
 import { actions } from '../helpers/constants';
 
 export default class BaseActionAfterDealingConsumer extends BasePlaceBetConsumer {
   async composeActionValidationCriteria(player, amount, maxBetChoice) {
-    const marketManagement = MarketManagement.getInstance();
-    const configs = await marketManagement.getGameMarketConfig(
-      this.definition.id,
-      player.session?.currency,
-      player.session?.language,
-    );
-    const resource = await loadLanguage(player?.session?.language);
-    const translation = Translation.getInstance(player?.session?.language, resource);
+    const settings = this.gameData.currencyGroupGames.find((x) => x.groupId.toString() === player.session.currencyGroupId);
+    const maxBet = Math.min(player.profile.maxBet, settings.maxBet);
+
     const formatNumberWithComma = helpers.numberHelper.formatNumberWithComma;
     const { betTracks } = this.gameData.ingame[player.profile.name] || { betTracks: { bets: {} } };
     const total = Object.values(betTracks.bets).reduce((sum, item) => sum + item, 0);
@@ -22,29 +14,24 @@ export default class BaseActionAfterDealingConsumer extends BasePlaceBetConsumer
     return [
       {
         failure: amount > maxBetChoice,
-        notice: translation.t(translation.keys.maxBetChoice, {
-          max: formatNumberWithComma(maxBetChoice),
-        }),
+        notice: this.getNoticeObj(helpers.noticeHelper.maxBetForChoice, { maxBet: formatNumberWithComma(maxBetChoice) })
       },
       {
-        failure: amount + total > configs.maxBet,
-        notice: translation.t(translation.keys.maxBet, {
-          max: formatNumberWithComma(configs.maxBet),
-        }),
+        failure: amount + total > maxBet,
+        notice: this.getNoticeObj(helpers.noticeHelper.maxBet, { maxBet: maxBet })
       },
     ];
   }
 
   async composeBettingTimeValidationCriteria(player, action) {
     const result = await super.composeBettingTimeValidationCriteria(player);
-    const translation = Translation.getInstance(player?.session?.language);
     const playerData = this.gameData.ingame[player.profile.name];
     if (!playerData) {
       this.logService.logWarning(`player ${player.profile.name} ingame undefined`);
 
       result.push({
         failure: true,
-        notice: translation.t(translation.keys.cannotProcessBet),
+        notice:this.getNoticeObj(helpers.noticeHelper.invalidBet)
       });
     } else {
       const { betTracks } = playerData;
@@ -55,7 +42,7 @@ export default class BaseActionAfterDealingConsumer extends BasePlaceBetConsumer
         },
         {
           failure: !!betTracks?.isDealing,
-          notice: translation.t(translation.keys.placeBetIsProcessingMessage),
+          notice:this.getNoticeObj(helpers.noticeHelper.invalidBet)
         },
       );
       switch (action) {
@@ -63,19 +50,19 @@ export default class BaseActionAfterDealingConsumer extends BasePlaceBetConsumer
         case actions.fold:
           result.push({
             failure: betTracks.communityCards.length !== 0,
-            notice: translation.t(translation.keys.cannotProcessBet),
+            notice:this.getNoticeObj(helpers.noticeHelper.invalidBet)
           });
           break;
         case actions.betTurn:
           result.push({
             failure: betTracks.communityCards.length !== 3,
-            notice: translation.t(translation.keys.cannotProcessBet),
+            notice:this.getNoticeObj(helpers.noticeHelper.invalidBet)
           });
           break;
         case actions.betRiver:
           result.push({
             failure: betTracks.communityCards.length !== 4,
-            notice: translation.t(translation.keys.cannotProcessBet),
+            notice:this.getNoticeObj(helpers.noticeHelper.invalidBet)
           });
       }
     }

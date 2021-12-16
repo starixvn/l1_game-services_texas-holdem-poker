@@ -1,20 +1,11 @@
 import BasePlaceBetConsumer from './base-place-bet-consumer';
-import MarketManagement from '@nex3/market-management';
 import { helpers } from 'sc-common';
-import Translation from '@nex3/translation';
 import { loadLanguage } from '../resources/translation/languages';
 import { actions } from '../helpers/constants';
 
 export default class UserDealConsumer extends BasePlaceBetConsumer {
   async composeActionValidationCriteria(player, payload) {
-    const marketManagement = MarketManagement.getInstance();
-    const configs = await marketManagement.getGameMarketConfig(
-      this.definition.id,
-      player.session?.currency,
-      player.session?.language,
-    );
-    const resource = await loadLanguage(player?.session?.language);
-    const translation = Translation.getInstance(player?.session?.language, resource);
+    const configs = this.gameData.gameConfigs;
     const formatNumberWithComma = helpers.numberHelper.formatNumberWithComma;
     const amountAnte = payload.anteBet;
 

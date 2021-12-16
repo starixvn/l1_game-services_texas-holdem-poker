@@ -1,11 +1,10 @@
-import { ProcessBetQueue as BaseProcessBetQueue } from '@nex3/nex3-game-base/crons';
+import { Core } from "sc-game-base";
 import { deal, generateDecks, reGenerateDecks } from '../helpers/deck-helper';
 import { getCombinationResult } from '../helpers/result-helper';
-import Translation from '@nex3/translation';
 import { helpers } from 'sc-common';
 import { actions, ranks } from '../helpers/constants';
 
-export default class ProcessBetQueue extends BaseProcessBetQueue {
+export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
   constructor({
     definition,
     gameData,
@@ -377,12 +376,9 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
   }
 
   handleFailPlaceBetResponse(player, response, action) {
-    const translation = Translation.getInstance(player?.session?.language);
-    const insufficientNotice = translation.t(translation.keys.notEnoughMoney);
-    const cannotProcessBetNotice = translation.t(translation.keys.cannotProcessBet);
     const noticeMapping = {
-      inSufficientBalance: insufficientNotice,
-      cannotProcessBet: cannotProcessBetNotice,
+      inSufficientBalance: helpers.noticeHelper.notEnoughMoney,
+      cannotProcessBet: helpers.noticeHelper.placeBetNextRound,
       inSufficientScoin: helpers.noticeHelper.notEnoughScoin,
     };
 

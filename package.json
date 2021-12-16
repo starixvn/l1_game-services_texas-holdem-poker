@@ -19,18 +19,17 @@
     "reportFile": "test-reporter.xml",
     "indent": 4
   },
-  "author": "NEX3",
+  "author": "NEX5",
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@nex3/nex3-game-base": "1.2.2",
-    "nodemon": "^2.0.4"
+    "nodemon": "^2.0.4",
+    "sc-game-base": "2.0.1-beta.27"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.14.7",
     "@commitlint/cli": "^9.1.2",
     "@commitlint/config-conventional": "^9.1.2",
-    "@nex3/game-service-integration": "1.0.1-beta.7",
     "@semantic-release/changelog": "^5.0.1",
     "@semantic-release/commit-analyzer": "^8.0.1",
     "@semantic-release/git": "^9.0.0",
