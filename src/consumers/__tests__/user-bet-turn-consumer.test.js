@@ -2,8 +2,17 @@ import BasePlaceBetConsumer from '../base-place-bet-consumer';
 import BaseActionAfterDealingConsumer from '../base-action-after-dealing-consumer';
 import UserBetTurnConsumer from '../user-bet-turn-consumer';
 import { actions } from '../../helpers/constants';
+import { Table } from 'sc-game-base';
 
 describe('UserBetTurnConsumer test', () => {
+  const gameData = new Table.TableGameData();
+
+  beforeEach(() => {
+    BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria = jest
+    .fn()
+    .mockReturnValue([]);
+  });
+
   it('inherit BaseActionAfterDealingConsumer', () => {
     // Act
     const consumer = new UserBetTurnConsumer();
@@ -14,18 +23,38 @@ describe('UserBetTurnConsumer test', () => {
 
   describe('composeActionValidationCriteria', () => {
     const definition = { id: 1 };
-    const player = { profile: { name: 'a' } };
-    const configs = { maxBetChoices: { turnBet: 100 } };
-    
+    const playerName = "nhanvat01";
+    const player = {
+      UID: "123",
+      profile: {
+        name: playerName,
+        minBet: 1,
+        maxBet: 2000,
+      },
+      session: {
+        currencyGroupId: "1",
+        currency: "US",
+      },
+    };
+
+    gameData.remainingTime = 20;
+    gameData.gameConfigs = {
+      enabled: true
+    };
+    gameData.currencyGroupGames = [
+      {
+        groupId: 1,
+        minBet: 10,
+        maxBet: 1000,
+        maxBetPerChoices: { turnBet: 100 }
+      },
+    ];
+   
     it('should run expected when betTracks empty and action is betTurn', async () => {
       // Arrange
-      const gameData = { ingame: {} };
+      gameData.ingame = {};
       const consumer = new UserBetTurnConsumer(definition, gameData);
       const payload = { action: actions.betTurn };
-      const expected = [];
-      BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria.mockReturnValue(
-        expected,
-      );
 
       // Act
       const actual = await consumer.composeActionValidationCriteria(player, payload);
@@ -33,20 +62,16 @@ describe('UserBetTurnConsumer test', () => {
       // Assert
       expect(
         BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria,
-      ).toHaveBeenCalledWith(player, 0, configs.maxBetChoices.turnBet);
-      expect(actual).toStrictEqual(expected);
+      ).toHaveBeenCalledWith(player, 0, 100);
+      expect(actual).toStrictEqual([]);
     });
 
     it('should run expected when action is betTurn and ante has value', async () => {
       // Arrange
       const bets = { ante: 10 };
-      const gameData = { ingame: { [player.profile.name]: { betTracks: { bets } } } };
+      gameData.ingame = { [player.profile.name]: { betTracks: { bets } } };
       const consumer = new UserBetTurnConsumer(definition, gameData);
       const payload = { action: actions.betTurn };
-      const expected = [];
-      BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria.mockReturnValue(
-        expected,
-      );
 
       // Act
       const actual = await consumer.composeActionValidationCriteria(player, payload);
@@ -54,20 +79,16 @@ describe('UserBetTurnConsumer test', () => {
       // Assert
       expect(
         BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria,
-      ).toHaveBeenCalledWith(player, bets.ante, configs.maxBetChoices.turnBet);
-      expect(actual).toStrictEqual(expected);
+      ).toHaveBeenCalledWith(player, bets.ante, 100);
+      expect(actual).toStrictEqual([]);
     });
 
     it('should run expected when action is checkTurn and ante has value', async () => {
       // Arrange
       const bets = { ante: 10 };
-      const gameData = { ingame: { [player.profile.name]: { betTracks: { bets } } } };
+      gameData.ingame = { [player.profile.name]: { betTracks: { bets } } };
       const consumer = new UserBetTurnConsumer(definition, gameData);
       const payload = { action: actions.checkTurn };
-      const expected = [];
-      BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria.mockReturnValue(
-        expected,
-      );
 
       // Act
       const actual = await consumer.composeActionValidationCriteria(player, payload);
@@ -75,8 +96,8 @@ describe('UserBetTurnConsumer test', () => {
       // Assert
       expect(
         BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria,
-      ).toHaveBeenCalledWith(player, 0, configs.maxBetChoices.turnBet);
-      expect(actual).toStrictEqual(expected);
+      ).toHaveBeenCalledWith(player, 0, 100);
+      expect(actual).toStrictEqual([]);
     });
   });
 

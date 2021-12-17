@@ -3,24 +3,11 @@ import BasePlaceBetConsumer from '../base-place-bet-consumer';
 import UserDealConsumer from '../user-deal-consumer';
 import { actions } from '../../helpers/constants';
 
-jest.mock('sc-common', () => {
-  return {
-    helpers: { numberHelper: { formatNumberWithComma: jest.fn((number) => number) } },
-  };
-});
-
 describe('UserDealConsumer test', () => {
   const definition = new Core.GameDefinition({ id: 1, name: 'texas-holdem-poker' });
   const gameData = new Table.TableGameData();
   const publisher = {};
   const logService = {};
-  const keys = {
-    maxBetChoice: 'maxBetChoice',
-    maxBet: 'maxBet',
-    minBet: 'minBet',
-    invalidDealDueToRunningRound: 'invalidDealDueToRunningRound',
-    placeBetIsProcessingMessage: 'placeBetIsProcessingMessage',
-  };
 
   it('inherit BasePlaceBetConsumer', () => {
     // Act
@@ -31,32 +18,63 @@ describe('UserDealConsumer test', () => {
   });
 
   describe('composeActionValidationCriteria', () => {
-    const configs = {
-      maxBetChoices: { anteBet: 100 },
-      maxBet: 1000,
-      minBet: 100,
+    const playerName = "nhanvat01";
+    const player = {
+      UID: "123",
+      profile: {
+        name: playerName,
+        minBet: 1,
+        maxBet: 2000,
+      },
+      session: {
+        currencyGroupId: "1",
+        currency: "US",
+      },
     };
-    const player = { profile: { name: 'a' }, session: { currency: 'IN', language: 'en' } };
-    const expected = [
+
+    gameData.remainingTime = 20;
+    gameData.gameConfigs = {
+      enabled: true
+    };
+    gameData.currencyGroupGames = [
       {
-        failure: false,
-        notice: keys.maxBetChoice,
-      },
-      {
-        failure: true,
-        notice: keys.minBet,
-      },
-      {
-        failure: false,
-        notice: keys.maxBet,
+        groupId: 1,
+        minBet: 10,
+        maxBet: 1000,
+        maxBetPerChoices: { callBet: 100, anteBet: 100, aaBet: 100 }
       },
     ];
+    
     it('should return expected', async () => {
       // Arrange
       const consumer = new UserDealConsumer(definition, gameData, publisher, logService);
 
       // Act
       const actual = await consumer.composeActionValidationCriteria(player, { anteBet: 10 });
+
+      const expected = [
+        {
+          failure: false,
+          notice: {
+            errorCode: "SB1910",
+            maxBet: "100"
+          }
+        },
+        {
+          failure: false,
+          notice:  {
+            errorCode: "SB1909",
+            minBet: "10",
+          },
+        },
+        {
+          failure: false,
+          notice: {
+            errorCode: "SB1911",
+            maxBet: "1,000",
+          },
+        },
+      ];
 
       // Assert
       expect(actual).toStrictEqual(expected);
@@ -77,9 +95,16 @@ describe('UserDealConsumer test', () => {
       const expected = [
         {
           failure: false,
-          notice: keys.invalidDealDueToRunningRound,
+          notice: {
+            errorCode: "SB1935",
+          },
         },
-        { failure: false, notice: keys.placeBetIsProcessingMessage },
+        {
+          failure: false,
+          notice: {
+            errorCode: "SB1935",
+          },
+        },
       ];
 
       // Act
@@ -96,9 +121,16 @@ describe('UserDealConsumer test', () => {
       const expected = [
         {
           failure: true,
-          notice: keys.invalidDealDueToRunningRound,
+          notice: {
+            errorCode: "SB1935",
+          },
         },
-        { failure: false, notice: keys.placeBetIsProcessingMessage },
+        {
+          failure: false,
+          notice: {
+            errorCode: "SB1935",
+          },
+        },
       ];
 
       // Act

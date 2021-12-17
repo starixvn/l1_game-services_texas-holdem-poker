@@ -1,48 +1,41 @@
 import BasePlaceBetConsumer from './base-place-bet-consumer';
 import { helpers } from 'sc-common';
-import { loadLanguage } from '../resources/translation/languages';
 import { actions } from '../helpers/constants';
 
 export default class UserDealConsumer extends BasePlaceBetConsumer {
   async composeActionValidationCriteria(player, payload) {
-    const configs = this.gameData.gameConfigs;
-    const formatNumberWithComma = helpers.numberHelper.formatNumberWithComma;
+    const settings = this.gameData.currencyGroupGames.find((x) => x.groupId.toString() === player.session.currencyGroupId);
+    const minBet = Math.max(player.profile.minBet, settings.minBet);
+    const maxBet = Math.min(player.profile.maxBet, settings.maxBet);
     const amountAnte = payload.anteBet;
+    const formatNumberWithComma = helpers.numberHelper.formatNumberWithComma;
 
     return [
       {
-        failure: amountAnte > configs.maxBetChoices.anteBet,
-        notice: translation.t(translation.keys.maxBetChoice, {
-          max: formatNumberWithComma(configs.maxBetChoices.anteBet),
-        }),
+        failure: amountAnte > settings.maxBetPerChoices.anteBet,
+        notice: this.getNoticeObj(helpers.noticeHelper.maxBetForChoice, { maxBet: formatNumberWithComma(settings.maxBetPerChoices.anteBet) }),
       },
       {
-        failure: amountAnte < configs.minBet,
-        notice: translation.t(translation.keys.minBet, {
-          min: formatNumberWithComma(configs.minBet),
-        }),
+        failure: amountAnte < settings.maxBetPerChoices.minBet,
+        notice: this.getNoticeObj(helpers.noticeHelper.minBet, { minBet: formatNumberWithComma(minBet)}),
       },
       {
-        failure: amountAnte > configs.maxBet,
-        notice: translation.t(translation.keys.maxBet, {
-          max: formatNumberWithComma(configs.maxBet),
-        }),
+        failure: amountAnte > settings.maxBetPerChoices.maxBet,
+        notice: this.getNoticeObj(helpers.noticeHelper.maxBet, { maxBet: formatNumberWithComma(maxBet) }),
       },
     ];
   }
 
   async composeBettingTimeValidationCriteria(player) {
     const result = await super.composeBettingTimeValidationCriteria(player);
-    const resource = await loadLanguage(player?.session?.language);
-    const translation = Translation.getInstance(player?.session?.language, resource);
     const { betTracks } = this.gameData.ingame[player.profile.name] || { betTracks: {} };
     result.push({
       failure: !!betTracks.roundId,
-      notice: translation.t(translation.keys.invalidDealDueToRunningRound),
+      notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
     });
     result.push({
       failure: !!betTracks?.isDealing,
-      notice: translation.t(translation.keys.placeBetIsProcessingMessage),
+      notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
     });
 
     return result;

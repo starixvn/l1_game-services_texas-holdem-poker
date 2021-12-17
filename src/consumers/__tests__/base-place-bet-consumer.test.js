@@ -140,14 +140,7 @@ describe('BasePlaceBetConsumer test', () => {
   });
 
   describe('consume', () => {
-    const keys = { cannotBetAtTheMoment: 'cannotBetAtTheMoment' };
     const player = { UID: 1, profile: { name: 'a' }, session: { language: 'en' } };
-    beforeAll(() => {
-      Translation.getInstance = jest.fn().mockReturnValue({
-        t: jest.fn((key) => key),
-        keys,
-      });
-    });
 
     it('should return when validBetRequest return false', async () => {
       // Arrange
@@ -178,7 +171,7 @@ describe('BasePlaceBetConsumer test', () => {
       expect(consumer.logService.logError).toHaveBeenCalledWith(error);
       expect(consumer.publisher.publishToUser).toHaveBeenCalledWith(player.UID, {
         endBet: -1,
-        notice: keys.cannotBetAtTheMoment,
+        notice: {"errorCode": "SB1935"},
       });
       expect(consumer.gameData.ingame).toStrictEqual({});
     });
@@ -195,7 +188,7 @@ describe('BasePlaceBetConsumer test', () => {
       // Assert
       expect(consumer.publisher.publishToUser).toHaveBeenCalledWith(player.UID, {
         endBet: -1,
-        notice: keys.cannotBetAtTheMoment,
+        notice: {"errorCode": "SB1935"},
       });
     });
 

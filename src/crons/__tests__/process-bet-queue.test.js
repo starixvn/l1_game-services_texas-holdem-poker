@@ -952,7 +952,6 @@ describe('Process bet queue test', () => {
 
   describe('handleFailPlaceBetResponse', () => {
     const player = { session: { language: '' } };
-    const keys = { notEnoughMoney: 'notEnoughMoney', cannotProcessBet: 'cannotProcessBet' };
     it('should run correctly', () => {
       // Arrange
       const response = { cannotProcessBet: {} };
@@ -963,7 +962,7 @@ describe('Process bet queue test', () => {
       process.handleFailPlaceBetResponse(player, response, actions.deal);
 
       // Assert
-      expect(process.handleFailedBet).toHaveBeenCalledWith(player, keys.cannotProcessBet, {
+      expect(process.handleFailedBet).toHaveBeenCalledWith(player, "SB1905", {
         betChoice: actions.deal,
       });
     });

@@ -82,4 +82,11 @@ export default class BasePlaceBetConsumer {
 
     this.gameData.ingame[name].betQueue.push({ player, payload: queuePayload });
   }
+
+  getNoticeObj(errorCode, extraData) {
+    return {
+      errorCode,
+      ...extraData,
+    };
+  }
 }

@@ -2,8 +2,17 @@ import BasePlaceBetConsumer from '../base-place-bet-consumer';
 import BaseActionAfterDealingConsumer from '../base-action-after-dealing-consumer';
 import UserBetRiverConsumer from '../user-bet-river-consumer';
 import { actions } from '../../helpers/constants';
+import { Table } from 'sc-game-base';
 
 describe('UserBetRiverConsumer test', () => {
+  const gameData = new Table.TableGameData();
+
+  beforeEach(() => {
+    BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria = jest
+    .fn()
+    .mockReturnValue([]);
+  });
+
   it('inherit BaseActionAfterDealingConsumer', () => {
     // Act
     const consumer = new UserBetRiverConsumer();
@@ -14,18 +23,38 @@ describe('UserBetRiverConsumer test', () => {
 
   describe('composeActionValidationCriteria', () => {
     const definition = { id: 1 };
-    const player = { profile: { name: 'a' } };
-    const configs = { maxBetChoices: { riverBet: 100 } };
 
+    const playerName = "nhanvat01";
+    const player = {
+      UID: "123",
+      profile: {
+        name: playerName,
+        minBet: 1,
+        maxBet: 2000,
+      },
+      session: {
+        currencyGroupId: "1",
+        currency: "US",
+      },
+    };
+
+    gameData.remainingTime = 20;
+    gameData.gameConfigs = {
+      enabled: true
+    };
+    gameData.currencyGroupGames = [
+      {
+        groupId: 1,
+        minBet: 10,
+        maxBet: 1000,
+        maxBetPerChoices: { riverBet: 100 }
+      },
+    ];
     it('should run expected when betTracks empty and action is betRiver', async () => {
       // Arrange
-      const gameData = { ingame: {} };
+      gameData.ingame = {};
       const consumer = new UserBetRiverConsumer(definition, gameData);
       const payload = { action: actions.betRiver };
-      const expected = [];
-      BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria.mockReturnValue(
-        expected,
-      );
 
       // Act
       const actual = await consumer.composeActionValidationCriteria(player, payload);
@@ -33,20 +62,16 @@ describe('UserBetRiverConsumer test', () => {
       // Assert
       expect(
         BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria,
-      ).toHaveBeenCalledWith(player, 0, configs.maxBetChoices.riverBet);
-      expect(actual).toStrictEqual(expected);
+      ).toHaveBeenCalledWith(player, 0, 100);
+      expect(actual).toStrictEqual([]);
     });
 
     it('should run expected when action is betRiver and ante has value', async () => {
       // Arrange
       const bets = { ante: 10 };
-      const gameData = { ingame: { [player.profile.name]: { betTracks: { bets } } } };
+      gameData.ingame = { [player.profile.name]: { betTracks: { bets } } };
       const consumer = new UserBetRiverConsumer(definition, gameData);
       const payload = { action: actions.betRiver };
-      const expected = [];
-      BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria.mockReturnValue(
-        expected,
-      );
 
       // Act
       const actual = await consumer.composeActionValidationCriteria(player, payload);
@@ -54,20 +79,16 @@ describe('UserBetRiverConsumer test', () => {
       // Assert
       expect(
         BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria,
-      ).toHaveBeenCalledWith(player, bets.ante, configs.maxBetChoices.riverBet);
-      expect(actual).toStrictEqual(expected);
+      ).toHaveBeenCalledWith(player, bets.ante, 100);
+      expect(actual).toStrictEqual([]);
     });
 
     it('should run expected when action is checkRiver and ante has value', async () => {
       // Arrange
       const bets = { ante: 10 };
-      const gameData = { ingame: { [player.profile.name]: { betTracks: { bets } } } };
+      gameData.ingame = { [player.profile.name]: { betTracks: { bets } } };
       const consumer = new UserBetRiverConsumer(definition, gameData);
       const payload = { action: actions.checkRiver };
-      const expected = [];
-      BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria.mockReturnValue(
-        expected,
-      );
 
       // Act
       const actual = await consumer.composeActionValidationCriteria(player, payload);
@@ -75,8 +96,8 @@ describe('UserBetRiverConsumer test', () => {
       // Assert
       expect(
         BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria,
-      ).toHaveBeenCalledWith(player, 0, configs.maxBetChoices.riverBet);
-      expect(actual).toStrictEqual(expected);
+      ).toHaveBeenCalledWith(player, 0, 100);
+      expect(actual).toStrictEqual([]);
     });
   });
 

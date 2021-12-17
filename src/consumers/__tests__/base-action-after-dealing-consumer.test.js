@@ -3,24 +3,40 @@ import BasePlaceBetConsumer from '../base-place-bet-consumer';
 import BaseActionAfterDealingConsumer from '../base-action-after-dealing-consumer';
 import { actions } from '../../helpers/constants';
 
-jest.mock('sc-common', () => {
-  return {
-    helpers: { numberHelper: { formatNumberWithComma: jest.fn((number) => number) } },
-  };
-});
 describe('BaseActionAfterDealingConsumer test', () => {
-  const definition = new Core.GameDefinition({ id: 1, name: 'casino-holdem-poker' });
+  const definition = new Core.GameDefinition({ id: 1, name: 'texas-holdem-poker' });
   const gameData = new Table.TableGameData();
   const publisher = {};
   const logService = { logWarning: jest.fn() };
-  const keys = {
-    maxBetChoice: 'maxBetChoice',
-    maxBet: 'maxBet',
-    cannotProcessBet: 'cannotProcessBet',
-    placeBetIsProcessingMessage: 'placeBetIsProcessingMessage',
+  const playerName = "a";
+  const player = {
+    UID: "123",
+    profile: {
+      name: playerName,
+      minBet: 1,
+      maxBet: 2000,
+    },
+    session: {
+      currencyGroupId: "1",
+      currency: "US",
+    },
   };
 
-
+  beforeEach(() => {
+    gameData.remainingTime = 20;
+    gameData.gameConfigs = {
+      enabled: true
+    };
+    gameData.currencyGroupGames = [
+      {
+        groupId: 1,
+        minBet: 10,
+        maxBet: 1000,
+        maxBetPerChoices: { callBet: 100, anteBet: 100, aaBet: 100 }
+      },
+    ];
+  });
+ 
   it('inherit BasePlaceBetConsumer', () => {
     // Act
     const consumer = new BaseActionAfterDealingConsumer(
@@ -39,19 +55,25 @@ describe('BaseActionAfterDealingConsumer test', () => {
       maxBetChoices: { callBet: 100 },
       maxBet: 1000,
     };
-    const player = { profile: { name: 'a' }, session: { currency: 'IN', language: 'en' } };
+    // const player = { profile: { name: 'a' }, session: { currencyGroupId: "1", currency: 'IN', language: 'en' }};
     it('should return expected when amount 500', async () => {
       // Arrange
-      const data = { ingame: {} };
-      const consumer = new BaseActionAfterDealingConsumer(definition, data, publisher, logService);
+      gameData.ingame = {}
+      const consumer = new BaseActionAfterDealingConsumer(definition, gameData, publisher, logService);
       const expected = [
         {
           failure: true,
-          notice: keys.maxBetChoice,
+          notice: {
+            errorCode: "SB1910",
+            maxBet: "100"
+          },
         },
         {
           failure: false,
-          notice: keys.maxBet,
+          notice: {
+            errorCode: "SB1911",
+            maxBet: "1,000",
+          },
         },
       ];
 
@@ -68,18 +90,25 @@ describe('BaseActionAfterDealingConsumer test', () => {
 
     it('should return expected when amount 0', async () => {
       // Arrange
-      const data = { ingame: {} };
-      const consumer = new BaseActionAfterDealingConsumer(definition, data, publisher, logService);
+      gameData.ingame = {}
+      const consumer = new BaseActionAfterDealingConsumer(definition, gameData, publisher, logService);
       const expected = [
         {
           failure: false,
-          notice: keys.maxBetChoice,
+          notice:  {
+            errorCode: "SB1910",
+            maxBet: "100"
+          },
         },
         {
           failure: false,
-          notice: keys.maxBet,
+          notice: {
+            errorCode: "SB1911",
+            maxBet: "1,000",
+          },
         },
       ];
+
 
       // Act
       const actual = await consumer.composeActionValidationCriteria(
@@ -94,18 +123,22 @@ describe('BaseActionAfterDealingConsumer test', () => {
 
     it('should return expected when bet amount greater than maxBet per round', async () => {
       // Arrange
-      const data = {
-        ingame: { [player.profile.name]: { betTracks: { bets: { ante: 1000 } } } },
-      };
-      const consumer = new BaseActionAfterDealingConsumer(definition, data, publisher, logService);
+      gameData.ingame = { [player.profile.name]: { betTracks: { bets: { ante: 1000 } } } };
+      const consumer = new BaseActionAfterDealingConsumer(definition, gameData, publisher, logService);
       const expected = [
         {
           failure: false,
-          notice: keys.maxBetChoice,
+          notice:  {
+            errorCode: "SB1910",
+            maxBet: "100"
+          },
         },
         {
           failure: true,
-          notice: keys.maxBet,
+          notice: {
+            errorCode: "SB1911",
+            maxBet: "1,000",
+          },
         },
       ];
 
@@ -130,6 +163,7 @@ describe('BaseActionAfterDealingConsumer test', () => {
     });
     it('should return expected when empty ingame', async () => {
       // Arrange
+      gameData.ingame = {};
       const consumer = new BaseActionAfterDealingConsumer(
         definition,
         gameData,
@@ -139,7 +173,7 @@ describe('BaseActionAfterDealingConsumer test', () => {
       const expected = [
         {
           failure: true,
-          notice: keys.cannotProcessBet,
+          notice: {"errorCode": "SB1935"},
         },
       ];
 
@@ -158,33 +192,33 @@ describe('BaseActionAfterDealingConsumer test', () => {
         {
           action: actions.call,
           expected: [
-            { failure: false, notice: keys.cannotProcessBet },
-            { failure: false, notice: keys.placeBetIsProcessingMessage },
-            { failure: false, notice: keys.cannotProcessBet },
+            { failure: false, notice: {"errorCode": "SB1935"}, },
+            { failure: false, notice: {"errorCode": "SB1935"}, },
+            { failure: false, notice: {"errorCode": "SB1935"}, },
           ],
         },
         {
           action: actions.fold,
           expected: [
-            { failure: false, notice: keys.cannotProcessBet },
-            { failure: false, notice: keys.placeBetIsProcessingMessage },
-            { failure: false, notice: keys.cannotProcessBet },
+            { failure: false, notice: {"errorCode": "SB1935"}, },
+            { failure: false, notice: {"errorCode": "SB1935"}, },
+            { failure: false, notice: {"errorCode": "SB1935"}, },
           ],
         },
         {
           action: actions.betTurn,
           expected: [
-            { failure: false, notice: keys.cannotProcessBet },
-            { failure: false, notice: keys.placeBetIsProcessingMessage },
-            { failure: true, notice: keys.cannotProcessBet },
+            { failure: false, notice: {"errorCode": "SB1935"}, },
+            { failure: false, notice: {"errorCode": "SB1935"}, },
+            { failure: true, notice: {"errorCode": "SB1935"}, },
           ],
         },
         {
           action: actions.betRiver,
           expected: [
-            { failure: false, notice: keys.cannotProcessBet },
-            { failure: false, notice: keys.placeBetIsProcessingMessage },
-            { failure: true, notice: keys.cannotProcessBet },
+            { failure: false, notice: {"errorCode": "SB1935"}, },
+            { failure: false, notice: {"errorCode": "SB1935"}, },
+            { failure: true, notice: {"errorCode": "SB1935"}, },
           ],
         },
       ];

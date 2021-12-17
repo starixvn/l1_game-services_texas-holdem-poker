@@ -2,6 +2,6 @@ variables:
   PROJECT_NAME: l1-texas-holdem-poker-service
   
 include:
-- project: "ci/repos-ci/pentagon_l1-texas-holdem-poker-service"
+- project: "ci/repos-ci/pentagon_l1_texas_holdem_poker_service"
   ref: master
   file: "gitlab-ci.yml"

@@ -8,63 +8,10 @@ describe('InGameConsumer test', () => {
   const definition = new Core.GameDefinition({ id: 1, name: 'texasholdempoker' });
   const gameData = new Table.TableGameData();
 
-  describe('consume', () => {
-    let socketClient;
-    let player;
-    const user = { red: 0, type: false, avatarId: 1 };
-    let expectedPlayer;
-    beforeEach(() => {
-      socketClient = { emit: jest.fn() };
-      player = { UID: 1, profile: { name: 'a' }, socketClient };
-      expectedPlayer = {
-        id: player.UID,
-        name: player.profile.name,
-        red: user.red,
-        avatarId: user.avatarId,
-        type: user.type,
-      };
-    });
-    afterEach(() => {
-      socketClient = null;
-      player = {};
-      expectedPlayer = {};
-    });
-    it('run correctly when game enabled', async () => {
-      // Arrange
-      const data = { ...gameData, gameConfigs: { enabled: true }, players: {} };
-      const consumer = new InGameConsumer(definition, data);
-      consumer.buildPayload = jest.fn().mockReturnValue({ user });
-
-      // Act
-      await consumer.consume(player);
-
-      // Assert
-      expect(consumer.gameData.players[player.UID]).toStrictEqual(expectedPlayer);
-      expect(socketClient.emit).toHaveBeenCalledTimes(1);
-      expect(socketClient.emit).toHaveBeenCalledWith(definition.name, { user });
-    });
-
-    it('run correctly when game disabled', async () => {
-      // Arrange
-      const data = { ...gameData, players: { 1: {} }, remainingTime: 39, umMessages: 'um' };
-      const consumer = new InGameConsumer(definition, data);
-      consumer.buildPayload = jest.fn().mockReturnValue({ user });
-
-      // Act
-      await consumer.consume(player);
-
-      // Assert
-      expect(socketClient.emit).toHaveBeenCalledTimes(2);
-      expect(socketClient.emit).toHaveBeenCalledWith(definition.name, {
-        remainingTime: data.remainingTime,
-        um: true,
-        um_message: 'um',
-      });
-      expect(socketClient.emit).toHaveBeenCalledWith(definition.name, { user });
-    });
-  });
-
   describe('buildPayload', () => {
+    beforeEach(() => {
+      Core.BaseEventConsumers.InGameConsumer.prototype.buildPayload = jest.fn(); 
+    });
     it('should return expected when have betTracks', async () => {
       // Arrange
       const realPlayer = {
@@ -72,10 +19,7 @@ describe('InGameConsumer test', () => {
         session: { currency: 'IN', language: 'en' },
         profile: { name: 'a' },
       };
-      const marketConfig = { minBet: 1, maxBet: 100, maxBetChoices: { ante: 100 }, odds: {} };
-      MarketManagement.getInstance = jest.fn().mockReturnValue({
-        getGameMarketConfig: jest.fn().mockReturnValue(marketConfig),
-      });
+
       const betTracks = {
         roundId: 1,
         bets: { ante: 10 },
@@ -94,12 +38,6 @@ describe('InGameConsumer test', () => {
       consumer.getBalance = jest.fn();
       consumer.getUserInfo = jest.fn().mockReturnValue({ uid: realPlayer.UID });
       const expected = {
-        gameConfigs: {
-          minBet: marketConfig.minBet,
-          maxBet: marketConfig.maxBet,
-          maxBetChoices: marketConfig.maxBetChoices,
-          odds: marketConfig.odds,
-        },
         ownBets: {
           roundId: betTracks.roundId,
           bets: betTracks.bets,
@@ -119,44 +57,36 @@ describe('InGameConsumer test', () => {
       expect(consumer.getBalance).toHaveBeenCalledWith(realPlayer, true);
       expect(actual).toStrictEqual(expected);
     });
-  });
 
-  it('should return expected when betTracks empty', async () => {
-    // Arrange
-    const realPlayer = {
-      UID: 1,
-      session: { currency: 'IN', language: 'en' },
-      profile: { name: 'a' },
-    };
-    const marketConfig = { minBet: 1, maxBet: 100, maxBetChoices: { ante: 100 }, odds: {} };
-    MarketManagement.getInstance = jest.fn().mockReturnValue({
-      getGameMarketConfig: jest.fn().mockReturnValue(marketConfig),
+    it('should return expected when betTracks empty', async () => {
+      // Arrange
+      const realPlayer = {
+        UID: 1,
+        session: { currency: 'IN', language: 'en' },
+        profile: { name: 'a' },
+      };
+      const data = {
+        ...gameData,
+        ingame: {},
+        roundId: 10,
+      };
+      const consumer = new InGameConsumer(definition, data);
+      consumer.getBalance = jest.fn();
+      consumer.getUserInfo = jest.fn().mockReturnValue({ uid: realPlayer.UID });
+      const expected = {
+        ownBets: {},
+        user: { uid: realPlayer.UID },
+        lastRoundId: data.roundId,
+      };
+  
+      // Act
+      const actual = await consumer.buildPayload(realPlayer);
+  
+      // Assert
+      expect(consumer.getBalance).toHaveBeenCalledWith(realPlayer, true);
+      expect(actual).toStrictEqual(expected);
     });
-    const data = {
-      ...gameData,
-      ingame: {},
-      roundId: 10,
-    };
-    const consumer = new InGameConsumer(definition, data);
-    consumer.getBalance = jest.fn();
-    consumer.getUserInfo = jest.fn().mockReturnValue({ uid: realPlayer.UID });
-    const expected = {
-      gameConfigs: {
-        minBet: marketConfig.minBet,
-        maxBet: marketConfig.maxBet,
-        maxBetChoices: marketConfig.maxBetChoices,
-        odds: marketConfig.odds,
-      },
-      ownBets: {},
-      user: { uid: realPlayer.UID },
-      lastRoundId: data.roundId,
-    };
-
-    // Act
-    const actual = await consumer.buildPayload(realPlayer);
-
-    // Assert
-    expect(consumer.getBalance).toHaveBeenCalledWith(realPlayer, true);
-    expect(actual).toStrictEqual(expected);
   });
+
+ 
 });

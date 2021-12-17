@@ -18,7 +18,7 @@ export default class BaseActionAfterDealingConsumer extends BasePlaceBetConsumer
       },
       {
         failure: amount + total > maxBet,
-        notice: this.getNoticeObj(helpers.noticeHelper.maxBet, { maxBet: maxBet })
+        notice: this.getNoticeObj(helpers.noticeHelper.maxBet, { maxBet: formatNumberWithComma(maxBet) })
       },
     ];
   }
@@ -38,7 +38,7 @@ export default class BaseActionAfterDealingConsumer extends BasePlaceBetConsumer
       result.push(
         {
           failure: !betTracks.roundId,
-          notice: translation.t(translation.keys.cannotProcessBet),
+          notice:this.getNoticeObj(helpers.noticeHelper.invalidBet)
         },
         {
           failure: !!betTracks?.isDealing,
