@@ -33,6 +33,7 @@ export const placeBet = async (user, betInfo) => {
     System: session.system,
     RoundEndTime: betInfo.roundEndTime,
     FreeBet: betInfo.freeBet,
+    PartnerId: session.partnerId,
   };
 
   return placeBetWithValidAmount(user, betInfo, placeBetParams);

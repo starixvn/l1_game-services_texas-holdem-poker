@@ -38,19 +38,19 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     try {
       switch (payload.action) {
         case actions.deal:
-          await this.processDeal(player, payload.amount);
+          await this.processDeal(player, payload);
           break;
         case actions.call:
-          await this.processCall(player, payload.amount);
+          await this.processCall(player, payload);
           break;
         case actions.fold:
           await this.settleGameRoundConsumer.settleRound(player.profile.name, true);
           break;
         case actions.betTurn:
-          await this.processBetTurn(player, payload.amount);
+          await this.processBetTurn(player, payload);
           break;
         case actions.betRiver:
-          await this.processBetRiver(player, payload.amount);
+          await this.processBetRiver(player, payload);
           break;
       }
     } catch (e) {
@@ -87,8 +87,9 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     return presetCards;
   }
 
-  async processDeal(player, amount) {
+  async processDeal(player, payload) {
     const { betTracks } = this.gameData.ingame[player.profile.name];
+    const { amount } = payload;
     betTracks.player = [];
     betTracks.dealer = [];
     betTracks.communityCards = [];
@@ -105,6 +106,8 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
       gameId: this.definition.id,
       gameRoundId: roundId,
       choiceId: this.definition.choicesMapper[actions.deal],
+      freeBet: payload.freeBet,
+      clientSentTime: payload.time ?? new Date(),
     };
 
     const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
@@ -168,6 +171,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
       uid: player.UID,
       name: player.profile.name,
       odds,
+      exchangeRateId: this.gameData.exchangeRates.exId,
     });
   }
 
@@ -185,11 +189,14 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
       time: new Date(),
       memberId: player.session?.memberId,
       siteId: player.session?.siteId,
+      currency: player.session?.currencyName,
+      partnerId: player.session?.partnerId,
     });
   }
 
-  async processCall(player, amount) {
+  async processCall(player, payload) {
     const { betTracks } = this.gameData.ingame[player.profile.name];
+    const { amount } = payload
     betTracks.isDealing = true;
 
     const betInfo = {
@@ -197,7 +204,10 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
       gameId: this.definition.id,
       gameRoundId: betTracks.roundId,
       choiceId: this.definition.choicesMapper[actions.call],
+      freeBet: payload.freeBet,
+      clientSentTime: payload.time ?? new Date(),
     };
+
     const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
     const { response } = apiResult;
     if (apiResult.isOk) {
@@ -240,7 +250,8 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     this.updateCombinationPlayerResultInBetTracks(playerName);
   }
 
-  async processBetTurn(player, amount) {
+  async processBetTurn(player, payload) {
+    const { amount } = payload;
     if (amount > 0) {
       const { betTracks } = this.gameData.ingame[player.profile.name];
       betTracks.isDealing = true;
@@ -250,6 +261,8 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
         gameId: this.definition.id,
         gameRoundId: betTracks.roundId,
         choiceId: this.definition.choicesMapper.turn,
+        freeBet: payload.freeBet,
+        clientSentTime: payload.time ?? new Date(),
       };
       const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
       const { response } = apiResult;
@@ -295,7 +308,8 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     this.updateCombinationPlayerResultInBetTracks(playerName);
   }
 
-  async processBetRiver(player, amount) {
+  async processBetRiver(player, payload) {
+    const { amount } = payload;
     if (amount > 0) {
       const { betTracks } = this.gameData.ingame[player.profile.name];
       betTracks.isDealing = true;
@@ -305,7 +319,10 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
         gameId: this.definition.id,
         gameRoundId: betTracks.roundId,
         choiceId: this.definition.choicesMapper.river,
+        freeBet: payload.freeBet,
+        clientSentTime: payload.time ?? new Date(),
       };
+
       const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
       const { response } = apiResult;
       if (apiResult.isOk) {

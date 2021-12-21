@@ -52,6 +52,7 @@ describe('place-bet test', () => {
         amount: 10,
         freeBet: true,
         roundEndTime: '',
+        freeSpin: true
       };
       const session = { siteId: 123, currency: 'IN', memberId: 1, ip: '', language: 'en' };
       const placeBetParams = {
@@ -66,6 +67,7 @@ describe('place-bet test', () => {
         Language: session.language,
         RoundEndTime: bet.roundEndTime,
         FreeBet: bet.freeBet,
+        PartnerId: session.partnerId,
       };
       const balance = { isOk: true, response: { red: 1000 } };
       getCoinBalance.mockReturnValue(balance);

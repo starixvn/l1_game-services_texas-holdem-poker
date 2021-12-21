@@ -16,11 +16,11 @@ export default class UserDealConsumer extends BasePlaceBetConsumer {
         notice: this.getNoticeObj(helpers.noticeHelper.maxBetForChoice, { maxBet: formatNumberWithComma(settings.maxBetPerChoices.anteBet) }),
       },
       {
-        failure: amountAnte < settings.maxBetPerChoices.minBet,
+        failure: amountAnte < minBet,
         notice: this.getNoticeObj(helpers.noticeHelper.minBet, { minBet: formatNumberWithComma(minBet)}),
       },
       {
-        failure: amountAnte > settings.maxBetPerChoices.maxBet,
+        failure: amountAnte > maxBet,
         notice: this.getNoticeObj(helpers.noticeHelper.maxBet, { maxBet: formatNumberWithComma(maxBet) }),
       },
     ];
