@@ -386,19 +386,18 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     betTracks.communityCards.push(communityCardsGenerated[4]);
 
     this.updateCombinationPlayerResultInBetTracks(playerName);
-    const combinationDealerResult = getCombinationResult(
+
+    betTracks.combinationResult.dealer = getCombinationResult(
       betTracks.dealer.concat(betTracks.communityCards),
     );
-    betTracks.combinationResult.dealer = combinationDealerResult;
   }
 
   updateCombinationPlayerResultInBetTracks(playerName) {
     const { betTracks } = this.gameData.ingame[playerName];
 
-    const combinationPlayerResult = getCombinationResult(
+    betTracks.combinationResult.player = getCombinationResult(
       betTracks.player.concat(betTracks.communityCards),
     );
-    betTracks.combinationResult.player = combinationPlayerResult;
   }
 
   async updateRoundWhenContinuesDealing(playerName) {

@@ -28,8 +28,7 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
   }
 
   async settleRound(playerName, isFold = false, isAutoSettle = false) {
-    try {
-      const { betTracks } = this.gameData.ingame[playerName];
+    const { betTracks } = this.gameData.ingame[playerName];
     const round = await this.roundsRepository.findOne({ id: betTracks.roundId }).exec();
     let fold = isFold;
     if (isAutoSettle) {
@@ -38,7 +37,7 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
           betTracks.dealer.concat(round.communityCardsGenerated),
         );
 
-        betTracks.combinationResult.player =  getCombinationResult(
+        betTracks.combinationResult.player = getCombinationResult(
           betTracks.player.concat(round.communityCardsGenerated),
         );
 
@@ -75,9 +74,6 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
 
     await this.settleBets({ ...finish, playerName, playerUID: betTracks.uid }, fold);
     await gameNotifications.deleteOne({ uid: betTracks.uid, gameId: this.definition.id });
-    } catch (error) {
-      console.log(error);
-    }
   }
 
   async settleBets({ roundId, odds, time, playerName, playerUID }, isFold = false) {

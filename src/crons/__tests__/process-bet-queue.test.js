@@ -371,7 +371,7 @@ describe('Process bet queue test', () => {
   describe('createRound', () => {
     it('should return expected', async () => {
       const player = { UID: 1, profile: { name: 'profile' } };
-      const betTracks = { dealer: [{ rank: 1 }], communityCards: [] };
+      const betTracks = { player: [{ rank: 2 }], dealer: [{ rank: 1 }], communityCards: [] };
       const gameData = {
         exchangeRates: { exId: 1 },
         gameConfigs: { odds: { callBet: 2 } },
@@ -386,7 +386,11 @@ describe('Process bet queue test', () => {
         odds: gameData.gameConfigs.odds,
       };
       const roundsRepository = { create: jest.fn().mockReturnValue(expected) };
-      const process = new ProcessBetQueue({ gameData, roundsRepository });
+      const communityCardsGenerated = [{ rank: 3 }, { rank: 3 }, { rank: 3 }, { rank: 4 }, { rank: 4 }];
+      const definition = {
+        generateResult: jest.fn().mockReturnValue({ communityCardsGenerated }),
+      };
+      const process = new ProcessBetQueue({ definition, gameData, roundsRepository });
 
       // Act
       const actual = await process.createRound(player, 10);
@@ -554,7 +558,7 @@ describe('Process bet queue test', () => {
   });
 
   describe('updateBetTracksAfterCall', () => {
-    it('should run correctly', () => {
+    it('should run correctly', async () => {
       // Arrange
       const player = { profile: { name: 'a' }, session: { partnerId: "1W" } };
       const betTracks = {
@@ -565,16 +569,22 @@ describe('Process bet queue test', () => {
       const gameData = { ingame: { [player.profile.name]: { betTracks } } };
       const process = new ProcessBetQueue({ gameData });
       process.updateCombinationPlayerResultInBetTracks = jest.fn();
+      const communityCardsGenerated = [{ rank: 3 }, { rank: 3 }, { rank: 3 }, { rank: 4 }, { rank: 4 }];
+      process.roundsRepository = {
+        findOne: jest.fn().mockReturnValue({
+          lean: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue({ communityCardsGenerated }) }),
+        }),
+      };
 
       // Act
-      process.updateBetTracksAfterCall(player.profile.name, 100);
+      await process.updateBetTracksAfterCall(player.profile.name, 100);
 
       // Assert
       expect(betTracks.bets.call).toBe(100);
       expect(betTracks.communityCards.length).toBe(3);
       expect(betTracks.communityCards[0]).toStrictEqual({ rank: 3 });
-      expect(betTracks.communityCards[1]).toStrictEqual({ rank: 4 });
-      expect(betTracks.communityCards[2]).toStrictEqual({ rank: 5 });
+      expect(betTracks.communityCards[1]).toStrictEqual({ rank: 3 });
+      expect(betTracks.communityCards[2]).toStrictEqual({ rank: 3 });
     });
   });
 
@@ -724,7 +734,7 @@ describe('Process bet queue test', () => {
   });
 
   describe('updateBetTracksAfterBetTurn', () => {
-    it('should run correctly', () => {
+    it('should run correctly', async () => {
       // Arrange
       const betTracks = {
         bets: { ante: 10, call: 10 },
@@ -735,13 +745,20 @@ describe('Process bet queue test', () => {
       const process = new ProcessBetQueue({ gameData });
       process.updateCombinationPlayerResultInBetTracks = jest.fn();
 
+      const communityCardsGenerated = [{ rank: 3 }, { rank: 3 }, { rank: 3 }, { rank: 4 }, { rank: 4 }];
+      process.roundsRepository = {
+        findOne: jest.fn().mockReturnValue({
+          lean: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue({ communityCardsGenerated }) }),
+        }),
+      };
+
       // Act
-      process.updateBetTracksAfterBetTurn('a', 10);
+      await process.updateBetTracksAfterBetTurn('a', 10);
 
       // Assert
       expect(betTracks.bets.turn).toBe(10);
       expect(betTracks.communityCards.length).toBe(4);
-      expect(betTracks.communityCards[3]).toStrictEqual({ rank: 5 });
+      expect(betTracks.communityCards[3]).toStrictEqual({ rank: 4 });
     });
   });
 
@@ -893,7 +910,7 @@ describe('Process bet queue test', () => {
   });
 
   describe('updateBetTracksAfterBetRiver', () => {
-    it('should run correctly', () => {
+    it('should run correctly', async () => {
       // Arrange
       const betTracks = {
         bets: { ante: 10, call: 10, turn: 10 },
@@ -902,18 +919,25 @@ describe('Process bet queue test', () => {
         combinationResult: {},
         dealer: [{ rank: 2 }, { rank: 2 }],
       };
+      const communityCardsGenerated = [{ rank: 3 }, { rank: 3 }, { rank: 3 }, { rank: 4 }, { rank: 4 }];
       const gameData = { ingame: { a: { betTracks } } };
       const process = new ProcessBetQueue({ gameData });
       process.updateCombinationPlayerResultInBetTracks = jest.fn();
       getCombinationResult.mockReturnValue({ id: 2 });
 
+      process.roundsRepository = {
+        findOne: jest.fn().mockReturnValue({
+          lean: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue({ communityCardsGenerated }) }),
+        }),
+      };
+
       // Act
-      process.updateBetTracksAfterBetRiver('a', 10);
+      await process.updateBetTracksAfterBetRiver('a', 10);
 
       // Assert
       expect(betTracks.bets.river).toBe(10);
       expect(betTracks.communityCards.length).toBe(5);
-      expect(betTracks.communityCards[4]).toStrictEqual({ rank: 5 });
+      expect(betTracks.communityCards[4]).toStrictEqual({ rank: 4 });
       expect(betTracks.combinationResult.dealer).toStrictEqual({ id: 2 });
     });
   });
