@@ -1,6 +1,15 @@
 import { combination } from './combination-helper';
 import CardCombination from './card-combination';
 
+export const generateResult = (communityCards, deck) => {
+  const communityCardsGenerated =  [...communityCards]
+  while (communityCardsGenerated.length < 5) {
+    communityCardsGenerated.push(deck.shift());
+  }
+
+  return communityCardsGenerated;
+};
+
 export const getCombinationResult = (cards) => {
   if (cards) {
     const sortedCards = JSON.parse(JSON.stringify(cards)).sort(

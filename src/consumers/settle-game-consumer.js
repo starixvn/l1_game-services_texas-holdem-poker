@@ -28,33 +28,27 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
   }
 
   async settleRound(playerName, isFold = false, isAutoSettle = false) {
-    const { betTracks } = this.gameData.ingame[playerName];
+    try {
+      const { betTracks } = this.gameData.ingame[playerName];
     const round = await this.roundsRepository.findOne({ id: betTracks.roundId }).exec();
     let fold = isFold;
     if (isAutoSettle) {
       if (betTracks.communityCards.length >= 3) {
-        const step = betTracks.communityCards.length === 3 ? 'call' : 'turn';
-        while (betTracks.communityCards.length < 5) {
-          betTracks.communityCards.push(betTracks.deck.shift());
-        }
-
-        const combinationDealerResult = getCombinationResult(
-          betTracks.dealer.concat(betTracks.communityCards),
+        betTracks.combinationResult.dealer = getCombinationResult(
+          betTracks.dealer.concat(round.communityCardsGenerated),
         );
-        betTracks.combinationResult.dealer = combinationDealerResult;
 
-        const combinationPlayerResult = getCombinationResult(
-          betTracks.player.concat(betTracks.communityCards),
+        betTracks.combinationResult.player =  getCombinationResult(
+          betTracks.player.concat(round.communityCardsGenerated),
         );
-        betTracks.combinationResult.player = combinationPlayerResult;
 
         this.publisher.publishToUser(betTracks.uid, {
           autoSettle: {
-            communityCards: betTracks.communityCards,
+            communityCards: round.communityCardsGenerated,
             combinationResult: betTracks.combinationResult,
             dealer: betTracks.dealer,
             totalAmount: Object.values(betTracks.bets).reduce((total, item) => total + item),
-            step,
+            step: betTracks.communityCards.length === 3 ? 'call' : 'turn',
           },
         });
       } else {
@@ -81,6 +75,9 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
 
     await this.settleBets({ ...finish, playerName, playerUID: betTracks.uid }, fold);
     await gameNotifications.deleteOne({ uid: betTracks.uid, gameId: this.definition.id });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async settleBets({ roundId, odds, time, playerName, playerUID }, isFold = false) {

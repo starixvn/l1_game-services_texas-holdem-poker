@@ -2,9 +2,10 @@ import { Core, Table } from 'sc-game-base';
 import appConfigs from "./app-configs";
 import gameSettings from './game-settings';
 import ContainerRegistry from './container-registry';
+import { generateResult } from './helpers/result-helper';
 
 const run = async () => {
-  const definition = new Core.GameDefinition(gameSettings);
+  const definition = new Core.GameDefinition(gameSettings, generateResult);
   const gameData = new Table.TableGameData(gameSettings.durations.wholeRound);
   const container = new ContainerRegistry().register(appConfigs, definition, gameData);
 

@@ -13,6 +13,9 @@ const Schema = new mongoose.Schema({
   name: { type: String, required: true },
   odds: { type: Object },
   exchangeRateId: { type: Number, require: true },
+  md5: { type: String, require: true },
+  resultKey: { type: String, require: true },
+  communityCardsGenerated: { type: Array },
 });
 
 export default mongoose.model(modelName, Schema);

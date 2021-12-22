@@ -3,6 +3,7 @@ import { deal, generateDecks, reGenerateDecks } from '../helpers/deck-helper';
 import { getCombinationResult } from '../helpers/result-helper';
 import { helpers } from 'sc-common';
 import { actions, ranks } from '../helpers/constants';
+import { createHashMD5, randomString } from "../helpers/crypto-helper";
 
 export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
   constructor({
@@ -142,6 +143,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
       },
       endBet: betTracks.bets.ante,
       user: balance,
+      md5: this.gameData.md5
     });
   }
 
@@ -164,6 +166,18 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
   async createRound(player, roundId) {
     const { betTracks } = this.gameData.ingame[player.profile.name];
     const { odds } = this.gameData.gameConfigs;
+
+    const communityCardsGenerated = this.definition.generateResult(
+      betTracks.communityCards,
+      betTracks.deck,
+    );
+
+    const cardsKey = JSON.stringify(betTracks.player.concat(betTracks.dealer).concat(communityCardsGenerated));
+    const resultKey = `${cardsKey}${randomString()}`;
+    const md5 = createHashMD5(resultKey);
+    this.gameData.md5 = md5;
+    this.gameData.resultKey = resultKey;
+
     return this.roundsRepository.create({
       id: roundId,
       result: { dealer: betTracks.dealer, communityCards: [] },
@@ -172,6 +186,9 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
       name: player.profile.name,
       odds,
       exchangeRateId: this.gameData.exchangeRates.exId,
+      communityCardsGenerated,
+      md5,
+      resultKey,
     });
   }
 
@@ -219,7 +236,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
   }
 
   async handleSuccessCall(player, amount, balance) {
-    this.updateBetTracksAfterCall(player.profile.name, amount);
+    await this.updateBetTracksAfterCall(player.profile.name, amount);
     const { betTracks } = this.gameData.ingame[player.profile.name];
 
     await this.updateRoundWhenContinuesDealing(player.profile.name);
@@ -238,15 +255,13 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     this.publisher.publishToUser(player.UID, { endBet: amount, user: balance, call });
   }
 
-  updateBetTracksAfterCall(playerName, amount) {
+  async updateBetTracksAfterCall(playerName, amount) {
     const { betTracks } = this.gameData.ingame[playerName];
 
     betTracks.bets.call = amount;
-    betTracks.communityCards.push(
-      betTracks.deck.shift(),
-      betTracks.deck.shift(),
-      betTracks.deck.shift(),
-    );
+    const { communityCardsGenerated } = await this.roundsRepository.findOne({ id: betTracks.roundId }, { _id: false }).lean().exec();
+
+    betTracks.communityCards = communityCardsGenerated.slice(0, 3);
     this.updateCombinationPlayerResultInBetTracks(playerName);
   }
 
@@ -278,7 +293,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
   }
 
   async handleSuccessBetTurn(player, amount, balance) {
-    this.updateBetTracksAfterBetTurn(player.profile.name, amount);
+    await this.updateBetTracksAfterBetTurn(player.profile.name, amount);
     const { betTracks } = this.gameData.ingame[player.profile.name];
 
     await this.updateRoundWhenContinuesDealing(player.profile.name);
@@ -300,11 +315,12 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     }
   }
 
-  updateBetTracksAfterBetTurn(playerName, amount) {
+  async updateBetTracksAfterBetTurn(playerName, amount) {
     const { betTracks } = this.gameData.ingame[playerName];
 
     betTracks.bets.turn = amount;
-    betTracks.communityCards.push(betTracks.deck.shift());
+    const { communityCardsGenerated } = await this.roundsRepository.findOne({ id: betTracks.roundId }, { _id: false }).lean().exec();
+    betTracks.communityCards.push(communityCardsGenerated[3]);
     this.updateCombinationPlayerResultInBetTracks(playerName);
   }
 
@@ -337,7 +353,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
   }
 
   async handleSuccessBetRiver(player, amount, balance) {
-    this.updateBetTracksAfterBetRiver(player.profile.name, amount);
+    await this.updateBetTracksAfterBetRiver(player.profile.name, amount);
     const { betTracks } = this.gameData.ingame[player.profile.name];
 
     await this.betsRepository.update(
@@ -362,11 +378,12 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     await this.settleGameRoundConsumer.settleRound(player.profile.name);
   }
 
-  updateBetTracksAfterBetRiver(playerName, amount) {
+  async updateBetTracksAfterBetRiver(playerName, amount) {
     const { betTracks } = this.gameData.ingame[playerName];
+    const { communityCardsGenerated } = await this.roundsRepository.findOne({ id: betTracks.roundId }, { _id: false }).lean().exec();
 
     betTracks.bets.river = amount;
-    betTracks.communityCards.push(betTracks.deck.shift());
+    betTracks.communityCards.push(communityCardsGenerated[4]);
 
     this.updateCombinationPlayerResultInBetTracks(playerName);
     const combinationDealerResult = getCombinationResult(
