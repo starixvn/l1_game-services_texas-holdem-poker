@@ -10,6 +10,6 @@ export default class GetGameConfigsConsumer {
     const { session } = player;
     const settings = currencyGroupGames.find((x) => x.groupId.toString() === session.currencyGroupId);
 
-    player.socketClient.emit(this.definition.name, { gameConfigs: { ...settings, odds, enableFreeBet }, md5 });
+    player.socketClient.emit(this.definition.name, { gameConfigs: { ...settings, odds, enableFreeBet }, md5: { key: md5 }  });
   }
 }

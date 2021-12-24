@@ -172,11 +172,14 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
       betTracks.deck,
     );
 
-    const cardsKey = JSON.stringify(betTracks.player.concat(betTracks.dealer).concat(communityCardsGenerated));
-    const resultKey = `${cardsKey}${randomString()}`;
-    const md5 = createHashMD5(resultKey);
+    const resultKeySuffix = randomString();
+    const cards = betTracks.player.concat(betTracks.dealer).concat(communityCardsGenerated);
+
+    const resultKeyRaw = `[${cards.map(card => card.rank).join(', ')}]${resultKeySuffix}`;
+    const md5 = createHashMD5(resultKeyRaw);
+    
     this.gameData.md5 = md5;
-    this.gameData.resultKey = resultKey;
+    this.gameData.resultKey = { rawValue: resultKeyRaw, formatValue: {cards, suffix: resultKeySuffix} };
 
     return this.roundsRepository.create({
       id: roundId,
@@ -188,7 +191,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
       exchangeRateId: this.gameData.exchangeRates.exId,
       communityCardsGenerated,
       md5,
-      resultKey,
+      resultKey: resultKeyRaw,
     });
   }
 

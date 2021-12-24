@@ -10,6 +10,8 @@ jest.mock('../../helpers/result-helper');
 describe('Settle game test', () => {
   const mockDate = new Date(123456);
   let spy;
+  const resultKey = { rawValue: "456", formatValue: { cards: [], suffix: "aaa" } };
+  const md5 = "123";
 
   beforeAll(() => {
     jest.useFakeTimers();
@@ -160,7 +162,7 @@ describe('Settle game test', () => {
 
     it('should run correctly when bet has value and has odds', async () => {
       // Arrange
-      const gameData = { ingame: { a: {} }, gameConfigs: {} };
+      const gameData = { ingame: { a: {} }, gameConfigs: {}, resultKey, md5 };
       const bet = { save: jest.fn() };
       const betsRepository = {
         findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue(bet) }),
@@ -198,12 +200,13 @@ describe('Settle game test', () => {
       expect(consumer.gameData.ingame).toStrictEqual({});
       expect(publisher.publishToUser).toHaveBeenCalledWith(finish.playerUID, {
         finish: { settlementResult: betResult.settlementResult },
+        md5: { key: { rawValue: "456", formatValue: { cards: [], suffix: "aaa" } } }
       });
     });
 
     it('should run correctly when bet has value and not odd', async () => {
       // Arrange
-      const gameData = { ingame: { a: {} }, gameConfigs: { odds: {} } };
+      const gameData = { ingame: { a: {} }, gameConfigs: { odds: {} }, resultKey, md5 };
       const bet = { save: jest.fn() };
       const betsRepository = {
         findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue(bet) }),
@@ -240,6 +243,7 @@ describe('Settle game test', () => {
       expect(consumer.gameData.ingame).toStrictEqual({});
       expect(publisher.publishToUser).toHaveBeenCalledWith(finish.playerUID, {
         finish: { settlementResult: betResult.settlementResult },
+        md5: { key: { rawValue: "456", formatValue: { cards: [], suffix: "aaa" } } }
       });
     });
   });
