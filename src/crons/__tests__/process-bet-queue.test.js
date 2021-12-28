@@ -547,7 +547,7 @@ describe('Process bet queue test', () => {
       expect(process.updateRoundWhenContinuesDealing).toHaveBeenCalledWith(player.profile.name);
       expect(betsRepository.update).toHaveBeenCalledWith(
         { phien: betTracks.roundId },
-        { $inc: { call: 100, bet: 100 }, result: betTracks.combinationResult.player },
+        { $inc: { call: 100, bet: 100 }, result: betTracks.combinationResult.player, callTime: new Date(123456) },
       );
       expect(publisher.publishToUser).toHaveBeenCalledWith(player.UID, {
         endBet: 100,
@@ -703,7 +703,7 @@ describe('Process bet queue test', () => {
       expect(process.updateRoundWhenContinuesDealing).toHaveBeenCalledWith(player.profile.name);
       expect(process.betsRepository.update).toHaveBeenCalledWith(
         { phien: betTracks.roundId },
-        { $inc: { turn: 10, bet: 10 }, result: betTracks.combinationResult.player },
+        { $inc: { turn: 10, bet: 10 }, result: betTracks.combinationResult.player, turnTime: new Date(123456) },
       );
       expect(publisher.publishToUser).toHaveBeenCalledWith(player.UID, {
         endBet: 10,
@@ -727,7 +727,7 @@ describe('Process bet queue test', () => {
       expect(process.updateRoundWhenContinuesDealing).toHaveBeenCalledWith(player.profile.name);
       expect(process.betsRepository.update).toHaveBeenCalledWith(
         { phien: betTracks.roundId },
-        { $inc: { turn: 0, bet: 0 }, result: betTracks.combinationResult.player },
+        { $inc: { turn: 0, bet: 0 }, result: betTracks.combinationResult.player, turnTime: new Date(123456) },
       );
       expect(publisher.publishToUser).toHaveBeenCalledWith(player.UID, { turn });
     });
@@ -878,7 +878,7 @@ describe('Process bet queue test', () => {
       expect(process.updateBetTracksAfterBetRiver).toHaveBeenCalledWith(player.profile.name, 10);
       expect(process.betsRepository.update).toHaveBeenCalledWith(
         { phien: betTracks.roundId },
-        { $inc: { river: 10, bet: 10 }, result: betTracks.combinationResult.player },
+        { $inc: { river: 10, bet: 10 }, result: betTracks.combinationResult.player, riverTime: new Date(123456) },
       );
       expect(publisher.publishToUser).toHaveBeenCalledWith(player.UID, {
         endBet: 10,
@@ -902,7 +902,7 @@ describe('Process bet queue test', () => {
       expect(process.updateBetTracksAfterBetRiver).toHaveBeenCalledWith(player.profile.name, 0);
       expect(process.betsRepository.update).toHaveBeenCalledWith(
         { phien: betTracks.roundId },
-        { $inc: { river: 0, bet: 0 }, result: betTracks.combinationResult.player },
+        { $inc: { river: 0, bet: 0 }, result: betTracks.combinationResult.player, riverTime: new Date(123456) },
       );
       expect(publisher.publishToUser).toHaveBeenCalledWith(player.UID, { river });
       expect(process.settleGameRoundConsumer.settleRound).toHaveBeenCalledWith(player.profile.name);

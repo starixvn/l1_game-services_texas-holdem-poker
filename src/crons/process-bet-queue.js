@@ -245,7 +245,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     await this.updateRoundWhenContinuesDealing(player.profile.name);
     await this.betsRepository.update(
       { phien: betTracks.roundId },
-      { $inc: { call: amount, bet: amount }, result: betTracks.combinationResult.player },
+      { $inc: { call: amount, bet: amount }, result: betTracks.combinationResult.player, callTime: new Date(), },
     );
 
     const call = {
@@ -302,7 +302,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     await this.updateRoundWhenContinuesDealing(player.profile.name);
     await this.betsRepository.update(
       { phien: betTracks.roundId },
-      { $inc: { turn: amount, bet: amount }, result: betTracks.combinationResult.player },
+      { $inc: { turn: amount, bet: amount }, result: betTracks.combinationResult.player, turnTime: new Date(), },
     );
 
     const turn = {
@@ -361,7 +361,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
     await this.betsRepository.update(
       { phien: betTracks.roundId },
-      { $inc: { river: amount, bet: amount }, result: betTracks.combinationResult.player },
+      { $inc: { river: amount, bet: amount }, result: betTracks.combinationResult.player, riverTime: new Date(), },
     );
 
     const river = {
