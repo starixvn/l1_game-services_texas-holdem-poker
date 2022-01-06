@@ -5,7 +5,7 @@ const game = {
 const currencyData = { code: "USD", name: "$US" };
 
 const socketOptions = {
-    socketUri: "http://127.0.0.1:5001/user/texasholdempoker",
+    socketUri: "http://127.0.0.1:8037/user/texasholdempoker",
     gameName: game.name,
     proxyRoute: "/socket.io",
 };
@@ -13,19 +13,13 @@ const socketOptions = {
 const gameConfig = {
     type: 0,
     name: "texasholdempoker",
-    enabled: true,
-    botenabled: true,
-    minbet: 1,
-    maxbet: 5000,
-    disabledround: 1187977,
-    bot_maxbet: 500,
-    hour_maxbot: [0, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.05, 0.05, 0.05, 0.05, 0.05, 0.005, 0.005, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    disabled_message: "Game đang được bảo trì, vui lòng quay lại sau 10 phút.",
+    minBet: 1,
+    maxBet: 3000,
     maxBetPerChoices: {
-        "anteBet": 1000,
-        "callBet": 1000,
-        "turnBet": 1000,
-        "riverBet": 1000
+        "anteBet": 3000,
+        "callBet": 3000,
+        "turnBet": 3000,
+        "riverBet": 3000
       },
     odds: {
         "call": 2,
@@ -41,10 +35,7 @@ const gameConfig = {
         "AnteBet_fourKind": 0,
         "AnteBet_straightFlush": 0,
         "AnteBet_royalFlush": 2
-      },
-    delayStartTime: 0,
-    siteExclusions: [],
-    enableFreeBet: false,
+      }
 };
 
 const rounds = [

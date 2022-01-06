@@ -8,10 +8,11 @@ import ContainerRegistry from "../../../src/container-registry";
 
 export const run = async () => {
     initAPIStub(appConfigs.apiSettings.apiUrl);
-    const definition = new Table.TableGameDefinition(gameSettings, generateResult);
+    const definition = new Core.GameDefinition(gameSettings, generateResult);
     const gameData = new Table.TableGameData(gameSettings.durations.wholeRound);
     const container = new ContainerRegistry().register(appConfigs, definition, gameData);
-    const app = new Core.BaseGameApp("TexasHoldemPoker", appConfigs);
+  
+    const app = new Core.BaseGameApp("Texas Holdem Poker", appConfigs);
     await app.run();
     await app.startGame(container);
 };
