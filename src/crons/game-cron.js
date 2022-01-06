@@ -68,6 +68,9 @@ export default class GameCron extends Core.Crons.BaseGameCron {
     }
 
     await this.initBetTracks();
+    await this.getSettingForNewRound();
+    await this.updateExchangeRates();
+    
     job.start();
   }
 
