@@ -1,10 +1,9 @@
 import { errorUser, GameClientDriver, internalServerErrorUser, normalUser } from "sc-game-service-integration-utils";
-import { deal } from "../../src/helpers/deck-helper";
-
 import { currencyData, socketOptions } from "./stubs/test-data";
 
 const JEST_ASSERT_WAITING_RESPONSE_TIMEOUT = 10000;
 const WAITING_END_GAME_TIMEOUT = 5000;
+let gameClientDriver;
 
 describe("Texas Casino Holdem Service", () => {
     beforeAll(() => {
@@ -13,18 +12,14 @@ describe("Texas Casino Holdem Service", () => {
     });
 
     afterAll(() => {
-        jest.clearAllTimers()
+        jest.clearAllTimers();
+        gameClientDriver.close();
     });
 
     describe("Happy Path Cases", () => {
-        let gameClientDriver;
         beforeAll(() => {
             // Arrange
             gameClientDriver = new GameClientDriver(socketOptions, initUserSession(normalUser));
-        });
-
-        afterAll(() => {
-            gameClientDriver.close();
         });
 
         it("should start and allow game client connect to.", async (done) => {
@@ -48,7 +43,7 @@ describe("Texas Casino Holdem Service", () => {
             // Act
             gameClientDriver.sendInGameEvent();
 
-             // Assert
+            // Assert
             gameClientDriver.handleInGameEvent((inGameData) => {
                 if (inGameData?.user?.UID) {
                     expect(inGameData.user).toStrictEqual(expectedUser);
@@ -84,7 +79,7 @@ describe("Texas Casino Holdem Service", () => {
                     "callBet": 3000,
                     "turnBet": 3000,
                     "riverBet": 3000
-                  },
+                },
                 odds: {
                     "call": 2,
                     "turn": 2,
@@ -99,7 +94,7 @@ describe("Texas Casino Holdem Service", () => {
                     "AnteBet_fourKind": 0,
                     "AnteBet_straightFlush": 0,
                     "AnteBet_royalFlush": 2
-                  }
+                }
             };
 
             // Act
@@ -123,8 +118,8 @@ describe("Texas Casino Holdem Service", () => {
         it("should return current user ticket result when user is playing game.", async (done) => {
             // Arrange
             const expectedEndBetResponse = {
-                deal:{
-                    choices:{
+                deal: {
+                    choices: {
                         ante: 10
                     }
                 },
@@ -135,7 +130,7 @@ describe("Texas Casino Holdem Service", () => {
             gameClientDriver.socket.emit("bet", {
                 action: "deal",
                 anteBet: 10
-              })
+            })
 
             // Assert
             await gameClientDriver.handleEndBetEvent((endBetData) => {
@@ -146,9 +141,59 @@ describe("Texas Casino Holdem Service", () => {
                     expect(endBetData.deal.player.length).toEqual(2);
                     expect(endBetData.deal.totalAmount).toEqual(10);
                     expect(endBetData.user).toEqual(expectedEndBetResponse.user);
-                   
+
                     done();
                 }
+            });
+        });
+    });
+
+    describe("Unhappy Path Cases", () => {
+        it("should return error when place bet failed", async (done) => {
+            // Arrange
+            gameClientDriver = new GameClientDriver(socketOptions, initUserSession(errorUser));
+            await gameClientDriver.handleSignedInEvent(async () => {
+                await gameClientDriver.sendInGameEvent();
+                // Act
+                gameClientDriver.socket.emit("bet", {
+                    action: "deal",
+                    anteBet: 10
+                });
+
+                // Assert
+                await gameClientDriver.handleEndBetEvent((endBetData) => {
+                    if (endBetData.endBet == -1) {
+                        expect(endBetData.betChoice).toEqual("deal");
+                        expect(endBetData.apiError.errorCode).toEqual(3002);
+                        expect(endBetData.apiError.isPlaceBetFailed).toEqual(true);
+                        done();
+                    }
+                });
+            });
+        });
+
+        it("should return error when get internal server error from api", async (done) => {
+            // Arrange
+            gameClientDriver = new GameClientDriver(socketOptions, initUserSession(internalServerErrorUser));
+            gameClientDriver.handleSignedInEvent(async () => {
+                await gameClientDriver.sendInGameEvent();
+
+                // Act
+                gameClientDriver.socket.emit("bet", {
+                    action: "deal",
+                    anteBet: 10
+                });
+
+                // Assert
+                await gameClientDriver.handleEndBetEvent((endBetData) => {
+                    if (endBetData.endBet == -1) {
+                        expect(endBetData.betChoice).toEqual("deal");
+                        expect(endBetData.apiError.errorCode).toEqual("SB1900");
+                        expect(endBetData.apiError.isPlaceBetFailed).toEqual(true);
+                        done();
+                    }
+
+                });
             });
         });
     });

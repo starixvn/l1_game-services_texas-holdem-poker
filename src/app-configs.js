@@ -8,7 +8,7 @@ export default {
             id: "game-server",
             secret: "gameserver@20luminet&",
         },
-        useAuthenticate: true,
+        useAuthenticate: false,
         requestTimeout: 10000,
         placeBetTimeout: 4500,
         enableApiLogs: true,
@@ -33,7 +33,7 @@ export default {
     database: {
         url: "mongodb://127.0.0.1:27017",
         options: {
-            dbName: "texasCasino-test",
+            dbName: "texas-test",
             useNewUrlParser: true,
             useUnifiedTopology: true,
             auto_reconnect: true,
@@ -60,4 +60,5 @@ export default {
         enable: true,
         secretKey: "6c1f0f28-70f2-46ae-b031-22624a6cd8df",
     },
+    roundMaxDurationInMinutes: 5,
 };
