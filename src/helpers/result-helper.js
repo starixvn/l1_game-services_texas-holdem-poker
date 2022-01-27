@@ -1,5 +1,6 @@
 import { combination } from './combination-helper';
 import CardCombination from './card-combination';
+import { ranks } from './constants';
 
 export const generateResult = (communityCards, deck) => {
   const communityCardsGenerated =  [...communityCards]
@@ -9,6 +10,21 @@ export const generateResult = (communityCards, deck) => {
 
   return communityCardsGenerated;
 };
+
+export const getSettleResult = (cards) => {
+  if (cards) {
+    const sortedCards = JSON.parse(JSON.stringify(cards)).sort(
+      (cardA, cardB) => (cardB.rank || 13) - (cardA.rank || 13),
+    );
+    const combinations = combination(sortedCards, 5);
+    const cardCombinations = combinations
+      .map((newCards) => new CardCombination([...newCards]).result)
+      .sort(compareCombination);
+    return cardCombinations[0];
+  }
+  throw new Error(`Invalid parameter ${cards}`);
+};
+
 
 export const getCombinationResult = (cards) => {
   if (cards) {
@@ -44,4 +60,14 @@ export const compareCombination = (a, b) => {
   }
 
   return b.id - a.id;
+};
+
+export const isQualified = (result) => {
+  if (result.id > ranks.onePair) {
+    return true;
+  } else {
+    return result.id === ranks.onePair
+      ? result.cards[0].rank >= 3 || result.cards[0].rank === 0
+      : false;
+  }
 };

@@ -22,9 +22,9 @@ describe("Texas Casino Holdem Service", () => {
             gameClientDriver = new GameClientDriver(socketOptions, initUserSession(normalUser));
         });
 
-        it("should start and allow game client connect to.", async (done) => {
+        it("should start and allow game client connect to.", (done) => {
             // Assert
-            await gameClientDriver.handleSignedInEvent(() => {
+            gameClientDriver.handleSignedInEvent(() => {
                 done();
             });
         });
@@ -115,7 +115,7 @@ describe("Texas Casino Holdem Service", () => {
             });
         });
 
-        it("should return current user ticket result when user is playing game.", async (done) => {
+        it("should return current user ticket result when user is playing game.", (done) => {
             // Arrange
             const expectedEndBetResponse = {
                 deal: {
@@ -133,7 +133,7 @@ describe("Texas Casino Holdem Service", () => {
             })
 
             // Assert
-            await gameClientDriver.handleEndBetEvent((endBetData) => {
+            gameClientDriver.handleEndBetEvent((endBetData) => {
                 if (endBetData.endBet) {
                     expect(endBetData.deal.choices).toEqual(expectedEndBetResponse.deal.choices);
                     expect(endBetData.deal.combinationResult.player.cards.length).toEqual(2);
