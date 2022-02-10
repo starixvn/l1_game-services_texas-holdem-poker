@@ -177,7 +177,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
     const resultKeyRaw = `[${cards.map(card => card.rank).join(', ')}]${resultKeySuffix}`;
     const md5 = createHashMD5(resultKeyRaw);
-    
+
     this.gameData.md5 = md5;
     this.gameData.resultKey = { rawValue: resultKeyRaw, formatValue: {cards, suffix: resultKeySuffix} };
 

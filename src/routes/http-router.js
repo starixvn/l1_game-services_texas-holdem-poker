@@ -15,7 +15,7 @@ export default class HttpRouter extends TableHttpRouter {
 
     this.definition = definition;
   }
-  
+
   init(app) {
     super.init(app);
 

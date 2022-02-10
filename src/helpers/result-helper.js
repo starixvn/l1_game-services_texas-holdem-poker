@@ -11,21 +11,6 @@ export const generateResult = (communityCards, deck) => {
   return communityCardsGenerated;
 };
 
-export const getSettleResult = (cards) => {
-  if (cards) {
-    const sortedCards = JSON.parse(JSON.stringify(cards)).sort(
-      (cardA, cardB) => (cardB.rank || 13) - (cardA.rank || 13),
-    );
-    const combinations = combination(sortedCards, 5);
-    const cardCombinations = combinations
-      .map((newCards) => new CardCombination([...newCards]).result)
-      .sort(compareCombination);
-    return cardCombinations[0];
-  }
-  throw new Error(`Invalid parameter ${cards}`);
-};
-
-
 export const getCombinationResult = (cards) => {
   if (cards) {
     const sortedCards = JSON.parse(JSON.stringify(cards)).sort(
