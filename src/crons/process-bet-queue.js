@@ -4,6 +4,7 @@ import { getCombinationResult } from '../helpers/result-helper';
 import { helpers } from 'sc-common';
 import { actions, ranks } from '../helpers/constants';
 import { createHashMD5, randomString } from "../helpers/crypto-helper";
+import { cardLabels } from "../helpers/card";
 
 export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
   constructor({
@@ -143,7 +144,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
       },
       endBet: betTracks.bets.ante,
       user: balance,
-      md5: this.gameData.md5
+      md5: { key: betTracks.md5 }
     });
   }
 
@@ -175,11 +176,11 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     const resultKeySuffix = randomString();
     const cards = betTracks.player.concat(betTracks.dealer).concat(communityCardsGenerated);
 
-    const resultKeyRaw = `[${cards.map(card => card.rank).join(', ')}]${resultKeySuffix}`;
+    const resultKeyRaw = `[${cards.map(card => cardLabels[card.rank]).join(', ')}]${resultKeySuffix}`;
     const md5 = createHashMD5(resultKeyRaw);
 
-    this.gameData.md5 = md5;
-    this.gameData.resultKey = { rawValue: resultKeyRaw, formatValue: {cards, suffix: resultKeySuffix} };
+    betTracks.md5 = md5;
+    betTracks.resultKey = { rawValue: resultKeyRaw, formatValue: { cards, suffix: resultKeySuffix } };
 
     return this.roundsRepository.create({
       id: roundId,
@@ -191,7 +192,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
       exchangeRateId: this.gameData.exchangeRates.exId,
       communityCardsGenerated,
       md5,
-      resultKey: resultKeyRaw,
+      resultKeyRaw,
     });
   }
 
