@@ -32,7 +32,7 @@ describe('History query test', () => {
   });
 
   describe('convertTicketDetail', () => {
-    it('should return expected when isFold false', () => {
+    it('should return expected when isFold false round is ended', () => {
       // Arrange
       const bet = {
         isFold: false,
@@ -42,12 +42,22 @@ describe('History query test', () => {
         settlementResult: { ante: 0, call: 0, turn: 0, river: 0 },
         cards: [{ rank: 1 }],
         ante: 10,
+        anteOdds: 2,
+        callOdds: 2,
+        turnOdds: 2,
+        riverOdds: 2,
         call: 10,
         turn: 10,
         river: 10,
         other: 'a',
+        time: new Date(123),
+        callTime: new Date(123),
+        riverTime: new Date(123),
+        turnTime: new Date(123),
       };
+
       const round = {
+        ended: true,
         result: { dealer: [{ rank: 2 }], communityCards: [{ rank: 1 }] },
         settlementResult: { id: 1, cards: [{ rank: 2 }, { rank: 1 }] },
         other: 'b',
@@ -62,14 +72,35 @@ describe('History query test', () => {
         combination: round.settlementResult.cards,
         handId: round.settlementResult.id,
       };
-      const bets = {
-        ante: bet.ante,
-        call: bet.call,
-        turn: bet.turn,
-        river: bet.river,
-        bet: bet.bet,
-        result: bet.settlementResult,
-      };
+      const bets = [{
+        betChoice: "ante",
+        time: bet.time,
+        odds: bet.anteOdds,
+        stake: bet.ante,
+        win: bet.settlementResult.ante
+      },
+      {
+        betChoice: "call",
+        time: bet.callTime,
+        odds: bet.callOdds,
+        stake: bet.call,
+        win: bet.settlementResult.call
+      },
+      {
+        betChoice: "turn",
+        time: bet.turnTime,
+        odds: bet.turnOdds,
+        stake: bet.turn,
+        win: bet.settlementResult.turn
+      },
+      {
+        betChoice: "river",
+        time: bet.riverTime,
+        odds: bet.riverOdds,
+        stake: bet.river,
+        win: bet.settlementResult.river
+      }];
+
       const expected = {
         player,
         dealer,
@@ -100,7 +131,9 @@ describe('History query test', () => {
         call: 0,
         turn: 10,
         river: 10,
-        other: 'a',
+        other: 'a', ante: 10,
+        anteOdds: 2,
+        time: new Date(123),
       };
       const round = {
         result: { dealer: [{ rank: 2 }], communityCards: [{ rank: 1 }] },
@@ -111,14 +144,14 @@ describe('History query test', () => {
         combination: bet.result.cards,
         handId: bet.result.id,
       };
-      const bets = {
-        ante: bet.ante,
-        call: bet.call,
-        turn: bet.turn,
-        river: bet.river,
-        bet: bet.bet,
-        result: bet.settlementResult,
-      };
+      const bets =[{
+        betChoice: "ante",
+        time: bet.time,
+        odds: bet.anteOdds,
+        stake: bet.ante,
+        win: bet.settlementResult.ante
+      }];
+      
       const expected = {
         player,
         dealer: {},

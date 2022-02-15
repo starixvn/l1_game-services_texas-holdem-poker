@@ -22,21 +22,48 @@ export default class HistoryQuery {
       combination: bet.result.cards,
       handId: bet.result.id,
     };
+
     const dealer = bet.isFold
       ? {}
       : {
-          cards: round.result.dealer,
-          combination: round.settlementResult?.cards,
-          handId: round.settlementResult?.id,
-        };
-    const bets = {
-      ante: bet.ante,
-      call: bet.call,
-      turn: bet.turn,
-      river: bet.river,
-      bet: bet.bet,
-      result: bet.settlementResult,
-    };
+        cards: round.result.dealer,
+        combination: round.settlementResult?.cards,
+        handId: round.settlementResult?.id,
+      };
+
+    let bets = [{
+      betChoice: "ante",
+      time: bet.time,
+      odds: bet.anteOdds ?? 0,
+      stake: bet.ante,
+      win: bet.settlementResult.ante
+    }];
+
+    if (round.ended && !bet.isFold) {
+      bets = bets.concat([{
+        betChoice: "call",
+        time: bet.callTime,
+        odds: bet.callOdds ?? 0,
+        stake: bet.call,
+        win: bet.settlementResult.call
+      },
+      {
+        betChoice: "turn",
+        time: bet.turnTime,
+        odds: bet.turnOdds ?? 0,
+        stake: bet.turn,
+        win: bet.settlementResult.turn
+      },
+      {
+        betChoice: "river",
+        time: bet.riverTime,
+        odds: bet.riverOdds ?? 0,
+        stake: bet.river,
+        win: bet.settlementResult.river
+      }
+      ]);
+    }
+
     return {
       player,
       dealer,

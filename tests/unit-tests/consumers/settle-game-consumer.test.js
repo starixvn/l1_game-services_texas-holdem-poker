@@ -2,7 +2,7 @@ import SettleGameConsumer from '../../../src/consumers/settle-game-consumer';
 import { SettleGameRoundConsumer } from 'sc-game-base/src/core/event-consumers';
 import { gameNotifications } from 'sc-base-database';
 import { ranks } from '../../../src/helpers/constants';
-import { compareCombination, getCombinationResult } from '../../../src/helpers/result-helper';
+import { compareCombination } from '../../../src/helpers/result-helper';
 
 jest.mock('sc-base-database');
 jest.mock('../../../src/helpers/result-helper');
@@ -162,7 +162,8 @@ describe('Settle game test', () => {
 
     it('should run correctly when bet has value and has odds', async () => {
       // Arrange
-      const gameData = { ingame: { a: {} }, gameConfigs: {}, resultKey, md5 };
+      const betTracks = { bets: { ante: 10, aa: 10 }, combinationResult: { player: { id: 1 } }, md5, resultKey };
+      const gameData = { ingame: { a: { betTracks } }, gameConfigs: {}};
       const bet = { save: jest.fn() };
       const betsRepository = {
         findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue(bet) }),
@@ -206,11 +207,20 @@ describe('Settle game test', () => {
 
     it('should run correctly when bet has value and not odd', async () => {
       // Arrange
-      const gameData = { ingame: { a: {} }, gameConfigs: { odds: {} }, resultKey, md5 };
+      const betTracks = { bets: { ante: 10 }, combinationResult: { player: { id: 1 } }, md5, resultKey };
+      const gameData = { ingame: { a: { betTracks } }, gameConfigs: { odds: {} } };
       const bet = { save: jest.fn() };
       const betsRepository = {
         findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue(bet) }),
       };
+      const roundRepo = { md5: "123", };
+
+      process.roundsRepository = {
+        findOne: jest.fn().mockReturnValue({
+          lean: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue(roundRepo) }),
+        }),
+      };
+
       const publisher = { publishToUser: jest.fn() };
       const consumer = new SettleGameConsumer({ gameData, betsRepository, publisher });
       const betResult = { totalWin: 10, result: { id: 1 }, settlementResult: { ante: 10 } };

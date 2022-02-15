@@ -88,17 +88,21 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
       bet.result = betResult.result;
       bet.settlementResult = betResult.settlementResult;
       bet.endTime = time;
+      bet.anteOdds = betResult.anteOdds;
+      bet.callOdds = betResult.callOdds;
+      bet.turnOdds = betResult.turnOdds;
+      bet.riverOdds = betResult.riverOdds;
 
       const { betTracks } = this.gameData.ingame[playerName];
       let resultKey = betTracks.resultKey;
 
-      if(resultKey === undefined){
+      if (resultKey === undefined) {
         const round = await this.roundsRepository.findOne({ id: roundId }).exec();
-        const cards =  bet.cards.concat(round.result.dealer).concat(round.communityCardsGenerated);
+        const cards = bet.cards.concat(round.result.dealer).concat(round.communityCardsGenerated);
         const suffix = round.resultKeyRaw.split("]")[1];
-        resultKey =  { rawValue: round.resultKeyRaw, formatValue: { cards, suffix } };
+        resultKey = { rawValue: round.resultKeyRaw, formatValue: { cards, suffix } };
       }
-      
+
       await bet.save();
       await this.callEndGame(bet, roundId, time, betResult);
 
@@ -151,7 +155,6 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
     return result;
   }
 
-
   settleHandPlayerWin(playerName, odds, bet, result) {
     const anteOdds = this.normalizeAnteOdds(odds);
     const { betTracks } = this.gameData.ingame[playerName];
@@ -160,8 +163,9 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
 
     if (combinationResult.id >= ranks.straight) {
       const originalOdds = anteOdds[combinationResult.id] || 1;
-      const winAmount = betAmount * originalOdds;
 
+      const winAmount = betAmount * originalOdds;
+      result.anteOdds = originalOdds;
       result.totalWin += winAmount;
       result.netWin += winAmount - betAmount;
       result.settlementResult.ante = winAmount;
@@ -179,6 +183,18 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
     const betAmount = bet[type] ?? 0;
     const originalOdds = odds[type] || 1;
     const winAmount = betAmount * originalOdds;
+
+    switch (type) {
+      case "call":
+        result.callOdds = originalOdds;
+        break;
+      case "turn":
+        result.turnOdds = originalOdds;
+        break;
+      default:
+        result.riverOdds = originalOdds;
+        break;
+    }
 
     result.totalWin += winAmount;
     result.netWin += winAmount - betAmount;

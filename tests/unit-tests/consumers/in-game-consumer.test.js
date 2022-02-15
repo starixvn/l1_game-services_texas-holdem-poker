@@ -6,7 +6,7 @@ jest.mock('sc-base-database');
 describe('InGameConsumer test', () => {
   // Arrange
   const definition = new Core.GameDefinition({ id: 1, name: 'texasholdempoker' });
-  const gameData = new Table.TableGameData();
+  const preGameData = new Table.TableGameData();
   const realPlayer = {
     UID: 1,
     session: { currency: 'IN', language: 'en' },
@@ -18,9 +18,9 @@ describe('InGameConsumer test', () => {
     }
   };
 
-  gameData.md5 = "123";
-  gameData.resultKey = { rawValue: "456", formatValue: { cards: [], suffix: "aaa" } };
-  gameData.gameConfigs = {
+  preGameData.md5 = "123";
+  preGameData.resultKey = { rawValue: "456", formatValue: { cards: [], suffix: "aaa" } };
+  preGameData.gameConfigs = {
     enabled: true,
     minbet: 1,
     maxbet: 1000,
@@ -33,7 +33,7 @@ describe('InGameConsumer test', () => {
     enableFreeBet: false,
   };
 
-  gameData.exchangeRates = {
+  preGameData.exchangeRates = {
     exId: 1,
     code: {
       USD: 1,
@@ -41,6 +41,18 @@ describe('InGameConsumer test', () => {
       IDR: 0.07099,
     },
   };
+
+  const roundsRepository = {
+    findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue({md5: "123"}) }),
+  };
+
+  it('inherit BaseInGameConsumer', () => {
+    // Act
+    const consumer = new InGameConsumer(definition, preGameData);
+
+    // Assert
+    expect(consumer instanceof Core.BaseEventConsumers.InGameConsumer);
+  });
 
   describe('buildPayload', () => {
     beforeEach(() => {
@@ -55,14 +67,14 @@ describe('InGameConsumer test', () => {
         communityCards: [{ rank: 0, suit: 1 }],
         combinationResult: { player: {} },
       };
-      const data = {
-        ...gameData,
+      const gameData = {
+        ...preGameData,
         ingame: {
           [realPlayer.profile.name]: { betTracks },
         },
         roundId: 10,
       };
-      const consumer = new InGameConsumer(definition, data);
+      const consumer = new InGameConsumer(definition, gameData, roundsRepository);
       consumer.getBalance = jest.fn();
       consumer.getUserInfo = jest.fn().mockReturnValue({ uid: realPlayer.UID });
       const expected = {
@@ -81,7 +93,7 @@ describe('InGameConsumer test', () => {
           totalAmount: 10,
         },
         user: { uid: realPlayer.UID, rate: 1000 },
-        lastRoundId: data.roundId,
+        lastRoundId: gameData.roundId,
         md5: {
           key: "123",
         },
@@ -98,12 +110,12 @@ describe('InGameConsumer test', () => {
 
     it('should return expected when betTracks empty', async () => {
       // Arrange
-      const data = {
-        ...gameData,
+      const gameData = {
+        ...preGameData,
         ingame: {},
         roundId: 10,
       };
-      const consumer = new InGameConsumer(definition, data);
+      const consumer = new InGameConsumer(definition, gameData, roundsRepository);
       consumer.getBalance = jest.fn();
       consumer.getUserInfo = jest.fn().mockReturnValue({ uid: realPlayer.UID });
       const expected = {
@@ -115,10 +127,8 @@ describe('InGameConsumer test', () => {
         },
         ownBets: {},
         user: { uid: realPlayer.UID, rate: 1000 },
-        lastRoundId: data.roundId,
-        md5: {
-          key: "123",
-        },
+        lastRoundId: gameData.roundId,
+        md5: {},
         totalBets: {},
       };
   

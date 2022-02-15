@@ -277,6 +277,7 @@ describe('Process bet queue test', () => {
         bets: { ante: 100 },
         player: [],
         combinationResult: {},
+        md5: "123"
       };
       const gameData = { ingame: { [player.profile.name]: { betTracks } } };
       const publisher = { publishToUser: jest.fn() };
@@ -298,6 +299,7 @@ describe('Process bet queue test', () => {
         },
         endBet: betTracks.bets.ante,
         user: {},
+        md5: { key: betTracks.md5 }
       };
 
       // Act
