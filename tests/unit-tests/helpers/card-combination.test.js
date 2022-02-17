@@ -2,7 +2,7 @@ import PokerRule from '../../../src/helpers/poker-rule';
 import { ranks } from '../../../src/helpers/constants';
 import CardCombination from '../../../src/helpers/card-combination';
 
-describe('CardCombination test', () => {
+describe('CardCombination', () => {
   describe('getResult', () => {
     it('should return royal flush', () => {
       // Arrange

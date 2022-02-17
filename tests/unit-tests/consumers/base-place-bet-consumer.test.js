@@ -2,7 +2,7 @@ import { Core, Table } from 'sc-game-base';
 import BasePlaceBetConsumer from '../../../src/consumers/base-place-bet-consumer';
 import { actions } from '../../../src/helpers/constants';
 
-describe('BasePlaceBetConsumer test', () => {
+describe('BasePlaceBetConsumer', () => {
   const definition = new Core.GameDefinition({ id: 1, name: 'texas-holdem-poker' });
   const gameData = new Table.TableGameData();
   const logService = { logError: jest.fn() };
@@ -36,6 +36,7 @@ describe('BasePlaceBetConsumer test', () => {
           notice: '2',
         },
       ];
+
       consumer.composeBettingTimeValidationCriteria = jest
         .fn(player)
         .mockReturnValue([expected[0]]);
@@ -48,18 +49,20 @@ describe('BasePlaceBetConsumer test', () => {
       expect(actual).toStrictEqual(expected);
     });
 
-    it('should return empty array when composeBettingTimeValidationCriteria and composeActionValidationCriteria null', async () => {
-      // Arrange
-      const consumer = new BasePlaceBetConsumer(definition, gameData, publisher, logService);
-      const player = { uid: 1 };
-      consumer.composeBettingTimeValidationCriteria = jest.fn(player).mockReturnValue(null);
-      consumer.composeActionValidationCriteria = jest.fn(player, {}).mockReturnValue(null);
+    describe('when composeBettingTimeValidationCriteria and composeActionValidationCriteria null', () => {
+      it('should return empty array', async () => {
+        // Arrange
+        const consumer = new BasePlaceBetConsumer(definition, gameData, publisher, logService);
+        const player = { uid: 1 };
+        consumer.composeBettingTimeValidationCriteria = jest.fn(player).mockReturnValue(null);
+        consumer.composeActionValidationCriteria = jest.fn(player, {}).mockReturnValue(null);
 
-      // Act
-      const actual = await consumer.composeValidationCriteria(player, {});
+        // Act
+        const actual = await consumer.composeValidationCriteria(player, {});
 
-      // Assert
-      expect(actual).toBeArrayOfSize(0);
+        // Assert
+        expect(actual).toBeArrayOfSize(0);
+      });
     });
   });
 
@@ -88,147 +91,161 @@ describe('BasePlaceBetConsumer test', () => {
   });
 
   describe('validateBetRequest', () => {
-    it('should return false when have failedCriterion', async () => {
-      // Arrange
-      const consumer = new BasePlaceBetConsumer(definition, gameData, publisher, logService);
-      const player = { UID: 1 };
-      const criterion = [
-        {
-          failure: false,
-          notice: '1',
-        },
-        {
-          failure: true,
-          notice: '2',
-        },
-      ];
-      consumer.composeValidationCriteria = jest.fn(player, {}).mockReturnValue(criterion);
+    describe('when have failedCriterion', () => {
+      it('should return false.', async () => {
+        // Arrange
+        const consumer = new BasePlaceBetConsumer(definition, gameData, publisher, logService);
+        const player = { UID: 1 };
+        const criterion = [
+          {
+            failure: false,
+            notice: '1',
+          },
+          {
+            failure: true,
+            notice: '2',
+          },
+        ];
+        consumer.composeValidationCriteria = jest.fn(player, {}).mockReturnValue(criterion);
 
-      // Act
-      const actual = await consumer.validateBetRequest(player, {});
+        // Act
+        const actual = await consumer.validateBetRequest(player, {});
 
-      // Assert
-      expect(consumer.publisher.publishToUser).toHaveBeenCalledWith(player.UID, {
-        endBet: -1,
-        notice: criterion[1].notice,
+        // Assert
+        expect(consumer.publisher.publishToUser).toHaveBeenCalledWith(player.UID, {
+          endBet: -1,
+          notice: criterion[1].notice,
+        });
+        expect(actual).toBeFalse();
       });
-      expect(actual).toBeFalse();
     });
 
-    it('should return true when failedCriterion null', async () => {
-      // Arrange
-      const consumer = new BasePlaceBetConsumer(definition, gameData, publisher, logService);
-      const player = { UID: 1 };
-      const criterion = [
-        {
-          failure: false,
-          notice: '1',
-        },
-        {
-          failure: false,
-          notice: '2',
-        },
-      ];
-      consumer.composeValidationCriteria = jest.fn(player, {}).mockReturnValue(criterion);
+    describe('when failedCriterion null', () => {
+      it('should return true', async () => {
+        // Arrange
+        const consumer = new BasePlaceBetConsumer(definition, gameData, publisher, logService);
+        const player = { UID: 1 };
+        const criterion = [
+          {
+            failure: false,
+            notice: '1',
+          },
+          {
+            failure: false,
+            notice: '2',
+          },
+        ];
+        consumer.composeValidationCriteria = jest.fn(player, {}).mockReturnValue(criterion);
 
-      // Act
-      const actual = await consumer.validateBetRequest(player, {});
+        // Act
+        const actual = await consumer.validateBetRequest(player, {});
 
-      // Assert
-      expect(actual).toBeTrue();
+        // Assert
+        expect(actual).toBeTrue();
+      });
     });
   });
 
   describe('consume', () => {
     const player = { UID: 1, profile: { name: 'a' }, session: { language: 'en' } };
 
-    it('should return when validBetRequest return false', async () => {
-      // Arrange
-      const consumer = new BasePlaceBetConsumer(definition, gameData, publisher, logService);
-      consumer.gameData = { ingame: {} };
-      consumer.validateBetRequest = jest.fn().mockReturnValue(false);
+    describe('when validBetRequest return false', () => {
+      it('should return object.', async () => {
+        // Arrange
+        const consumer = new BasePlaceBetConsumer(definition, gameData, publisher, logService);
+        consumer.gameData = { ingame: {} };
+        consumer.validateBetRequest = jest.fn().mockReturnValue(false);
 
-      // Act
-      await consumer.consume(player, {}, {});
+        // Act
+        await consumer.consume(player, {}, {});
 
-      // Assert
-      expect(consumer.gameData.ingame).toStrictEqual({});
-    });
-
-    it('should log error when validBetRequest throw error', async () => {
-      // Arrange
-      const consumer = new BasePlaceBetConsumer(definition, gameData, publisher, logService);
-      const error = new Error('test error');
-      consumer.gameData = { ingame: {} };
-      consumer.validateBetRequest = jest.fn(async (player, payload) => {
-        throw error;
-      });
-
-      // Act
-      await consumer.consume(player, {}, {});
-
-      // Assert
-      expect(consumer.logService.logError).toHaveBeenCalledWith(error);
-      expect(consumer.publisher.publishToUser).toHaveBeenCalledWith(player.UID, {
-        endBet: -1,
-        notice: {"errorCode": "SB1935"},
-      });
-      expect(consumer.gameData.ingame).toStrictEqual({});
-    });
-
-    it('should publishToUser when have betQueue', async () => {
-      // Arrange
-      const data = { ingame: { [player.profile.name]: { betQueue: [{ action: 'deal' }] } } };
-      const consumer = new BasePlaceBetConsumer(definition, data, publisher, logService);
-      consumer.validateBetRequest = jest.fn().mockReturnValue(true);
-
-      // Act
-      await consumer.consume(player, {}, {});
-
-      // Assert
-      expect(consumer.publisher.publishToUser).toHaveBeenCalledWith(player.UID, {
-        endBet: -1,
-        notice: {"errorCode": "SB1935"},
+        // Assert
+        expect(consumer.gameData.ingame).toStrictEqual({});
       });
     });
 
-    it('should add new when action deal', async () => {
-      // Arrange
-      const data = { ingame: {} };
-      const consumer = new BasePlaceBetConsumer(definition, data, publisher, logService);
-      const queuePayload = { action: actions.deal, payload: {} };
-      consumer.validateBetRequest = jest.fn().mockReturnValue(true);
+    describe('when validBetRequest throw error', () => {
+      it('should log error.', async () => {
+        // Arrange
+        const consumer = new BasePlaceBetConsumer(definition, gameData, publisher, logService);
+        const error = new Error('test error');
+        consumer.gameData = { ingame: {} };
+        consumer.validateBetRequest = jest.fn(async (player, payload) => {
+          throw error;
+        });
 
-      // Act
-      await consumer.consume(player, {}, queuePayload);
+        // Act
+        await consumer.consume(player, {}, {});
 
-      // Assert
-      expect(consumer.gameData.ingame[player.profile.name].name).toEqual(player.profile.name);
-      expect(consumer.gameData.ingame[player.profile.name].betTracks).toStrictEqual({});
-      expect(consumer.gameData.ingame[player.profile.name].betQueue[0]).toStrictEqual({
-        player,
-        payload: queuePayload,
+        // Assert
+        expect(consumer.logService.logError).toHaveBeenCalledWith(error);
+        expect(consumer.publisher.publishToUser).toHaveBeenCalledWith(player.UID, {
+          endBet: -1,
+          notice: {"errorCode": "SB1935"},
+        });
+        expect(consumer.gameData.ingame).toStrictEqual({});
       });
     });
 
-    it('should push betQueue when action call', async () => {
-      // Arrange
-      const data = {
-        ingame: {
-          [player.profile.name]: { name: player.profile.name, betQueue: [] },
-        },
-      };
-      const consumer = new BasePlaceBetConsumer(definition, data, publisher, logService);
-      const queuePayload = { action: actions.call, payload: {} };
-      consumer.validateBetRequest = jest.fn().mockReturnValue(true);
+    describe('when have betQueue', () => {
+      it('should publishToUser.', async () => {
+        // Arrange
+        const data = { ingame: { [player.profile.name]: { betQueue: [{ action: 'deal' }] } } };
+        const consumer = new BasePlaceBetConsumer(definition, data, publisher, logService);
+        consumer.validateBetRequest = jest.fn().mockReturnValue(true);
 
-      // Act
-      await consumer.consume(player, {}, queuePayload);
+        // Act
+        await consumer.consume(player, {}, {});
 
-      // Assert
-      expect(consumer.gameData.ingame[player.profile.name].betQueue[0]).toStrictEqual({
-        player,
-        payload: queuePayload,
+        // Assert
+        expect(consumer.publisher.publishToUser).toHaveBeenCalledWith(player.UID, {
+          endBet: -1,
+          notice: {"errorCode": "SB1935"},
+        });
+      });
+    });
+
+    describe('when action deal', () => {
+      it('should add new player', async () => {
+        // Arrange
+        const data = { ingame: {} };
+        const consumer = new BasePlaceBetConsumer(definition, data, publisher, logService);
+        const queuePayload = { action: actions.deal, payload: {} };
+        consumer.validateBetRequest = jest.fn().mockReturnValue(true);
+
+        // Act
+        await consumer.consume(player, {}, queuePayload);
+
+        // Assert
+        expect(consumer.gameData.ingame[player.profile.name].name).toEqual(player.profile.name);
+        expect(consumer.gameData.ingame[player.profile.name].betTracks).toStrictEqual({});
+        expect(consumer.gameData.ingame[player.profile.name].betQueue[0]).toStrictEqual({
+          player,
+          payload: queuePayload,
+        });
+      });
+    });
+
+    describe('when action call', () => {
+      it('should push betQueue.', async () => {
+        // Arrange
+        const data = {
+          ingame: {
+            [player.profile.name]: { name: player.profile.name, betQueue: [] },
+          },
+        };
+        const consumer = new BasePlaceBetConsumer(definition, data, publisher, logService);
+        const queuePayload = { action: actions.call, payload: {} };
+        consumer.validateBetRequest = jest.fn().mockReturnValue(true);
+
+        // Act
+        await consumer.consume(player, {}, queuePayload);
+
+        // Assert
+        expect(consumer.gameData.ingame[player.profile.name].betQueue[0]).toStrictEqual({
+          player,
+          payload: queuePayload,
+        });
       });
     });
   });

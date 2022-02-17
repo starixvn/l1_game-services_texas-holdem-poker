@@ -1,6 +1,6 @@
 import { combination } from '../../../src/helpers/combination-helper';
 
-describe('combination test', () => {
+describe('Combination', () => {
   it('should return expected', () => {
     // Arrange
     const cards = [

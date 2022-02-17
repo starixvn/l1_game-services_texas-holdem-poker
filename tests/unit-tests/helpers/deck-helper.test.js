@@ -1,6 +1,6 @@
 import { reGenerateDecks, deal, generateDecks } from '../../../src/helpers/deck-helper';
 
-describe('deck-helper test', () => {
+describe('DeckHelper', () => {
   describe('generateDecks', () => {
     it('should return expected', () => {
       // Arrange

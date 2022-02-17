@@ -3,22 +3,34 @@ import InGameConsumer from "../../../src/consumers/in-game-consumer";
 
 jest.mock('sc-base-database');
 
-describe('InGameConsumer test', () => {
-  // Arrange
-  const definition = new Core.GameDefinition({ id: 1, name: 'texasholdempoker' });
-  const preGameData = new Table.TableGameData();
-  const realPlayer = {
-    UID: 1,
-    session: { currency: 'IN', language: 'en' },
-    profile: { name: 'a' },
-    session: {
-      currencyGroupId: 1,
-      currencyCode: "USD",
-      multiplier: 1000,
-    }
-  };
+const realPlayer = {
+  UID: 1,
+  profile: { name: 'a' },
+  session: {
+    currencyGroupId: 1,
+    currencyCode: "USD",
+    multiplier: 1000,
+  }
+};
 
-  preGameData.md5 = "123";
+const md5 = "123", odds = { choice01: 2 };
+
+const buildConsumer = (gameData) => {
+  const roundsRepository = {
+    findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue({ md5 }) }),
+  };
+  const definition = new Core.GameDefinition({ id: 1, name: 'texasholdempoker' });
+
+  const consumer = new InGameConsumer(definition, gameData, roundsRepository);
+  consumer.getBalance = jest.fn();
+  consumer.getUserInfo = jest.fn().mockReturnValue({ uid: realPlayer.UID });
+
+  return consumer;
+};
+
+const buildPreGameData = () => {
+  let preGameData = new Table.TableGameData();
+  preGameData.md5 = md5;
   preGameData.resultKey = { rawValue: "456", formatValue: { cards: [], suffix: "aaa" } };
   preGameData.gameConfigs = {
     enabled: true,
@@ -27,9 +39,7 @@ describe('InGameConsumer test', () => {
     choices_maxbet: {
       choice01: 200,
     },
-    odds: {
-      choice01: 2,
-    },
+    odds,
     enableFreeBet: false,
   };
 
@@ -42,102 +52,97 @@ describe('InGameConsumer test', () => {
     },
   };
 
-  const roundsRepository = {
-    findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue({md5: "123"}) }),
-  };
+  return preGameData;
+};
 
-  it('inherit BaseInGameConsumer', () => {
+describe('InGameConsumer', () => {
+  it('should inherit BaseInGameConsumer', () => {
+    // Arrange
+    Core.BaseEventConsumers.InGameConsumer.prototype.buildPayload = jest.fn();
+
     // Act
-    const consumer = new InGameConsumer(definition, preGameData);
+    const consumer = buildConsumer(buildPreGameData());
 
     // Assert
     expect(consumer instanceof Core.BaseEventConsumers.InGameConsumer);
   });
 
   describe('buildPayload', () => {
-    beforeEach(() => {
-      Core.BaseEventConsumers.InGameConsumer.prototype.buildPayload = jest.fn(); 
-    });
-    it('should return expected when have betTracks', async () => {
+    it('should get balance.', async () => {
       // Arrange
-      const betTracks = {
-       roundId: 10,
+      const consumer = buildConsumer(buildPreGameData());
+
+      // Act
+      await consumer.buildPayload(realPlayer);
+
+      // Assert
+      expect(consumer.getBalance).toHaveBeenCalledWith(realPlayer, true);
+    });
+
+    describe('betTracks test cases', () => {
+      const betTracksHasValue = {
+        roundId: 10,
         bets: { ante: 10 },
         player: [],
         communityCards: [{ rank: 0, suit: 1 }],
         combinationResult: { player: {} },
       };
-      const gameData = {
-        ...preGameData,
-        ingame: {
-          [realPlayer.profile.name]: { betTracks },
-        },
-        roundId: 10,
+
+      const emptyBetTracks = {};
+      const gameConfigs = {
+        enableFreeBet: false,
+        odds,
       };
-      const consumer = new InGameConsumer(definition, gameData, roundsRepository);
-      consumer.getBalance = jest.fn();
-      consumer.getUserInfo = jest.fn().mockReturnValue({ uid: realPlayer.UID });
-      const expected = {
-        gameConfigs: {
-          enableFreeBet: false,
-          odds: {
-            choice01: 2,
+
+      const testCases = [
+        {
+          betTracks: betTracksHasValue,
+          expected: {
+            gameConfigs,
+            ownBets: {
+              roundId: betTracksHasValue.roundId,
+              bets: betTracksHasValue.bets,
+              player: betTracksHasValue.player,
+              communityCards: betTracksHasValue.communityCards,
+              combinationResult: betTracksHasValue.combinationResult,
+              totalAmount: 10,
+            },
+            user: { uid: realPlayer.UID, rate: 1000 },
+            lastRoundId: 10,
+            md5: { key: md5 },
+            totalBets: {},
+          }
+        },
+        {
+          betTracks: emptyBetTracks,
+          expected:
+          {
+            gameConfigs,
+            ownBets: {},
+            user: { uid: realPlayer.UID, rate: 1000 },
+            lastRoundId: 10,
+            md5: {},
+            totalBets: {},
+          }
+        }];
+
+      it.each(testCases)('should return expected.', async ({ betTracks, expected }) => {
+        const gameData = {
+          ...buildPreGameData(),
+          ingame: {
+            [realPlayer.profile.name]: { betTracks },
           },
-        },
-        ownBets: {
-          roundId: betTracks.roundId,
-          bets: betTracks.bets,
-          player: betTracks.player,
-          communityCards: betTracks.communityCards,
-          combinationResult: betTracks.combinationResult,
-          totalAmount: 10,
-        },
-        user: { uid: realPlayer.UID, rate: 1000 },
-        lastRoundId: gameData.roundId,
-        md5: {
-          key: "123",
-        },
-        totalBets: {},
-      };
+          roundId: 10,
+        };
 
-      // Act
-      const actual = await consumer.buildPayload(realPlayer);
+        const consumer = buildConsumer(gameData);
 
-      // Assert
-      expect(consumer.getBalance).toHaveBeenCalledWith(realPlayer, true);
-      expect(actual).toStrictEqual(expected);
-    });
+        // Act
+        const actual = await consumer.buildPayload(realPlayer);
 
-    it('should return expected when betTracks empty', async () => {
-      // Arrange
-      const gameData = {
-        ...preGameData,
-        ingame: {},
-        roundId: 10,
-      };
-      const consumer = new InGameConsumer(definition, gameData, roundsRepository);
-      consumer.getBalance = jest.fn();
-      consumer.getUserInfo = jest.fn().mockReturnValue({ uid: realPlayer.UID });
-      const expected = {
-        gameConfigs: {
-          enableFreeBet: false,
-          odds: {
-            choice01: 2,
-          },
-        },
-        ownBets: {},
-        user: { uid: realPlayer.UID, rate: 1000 },
-        lastRoundId: gameData.roundId,
-        md5: {},
-        totalBets: {},
-      };
-  
-      // Act
-      const actual = await consumer.buildPayload(realPlayer);
-  
-      // Assert
-      expect(consumer.getBalance).toHaveBeenCalledWith(realPlayer, true);
-      expect(actual).toStrictEqual(expected);
+        // Assert
+        expect(actual).toStrictEqual(expected);
+      });
     });
   });
 });

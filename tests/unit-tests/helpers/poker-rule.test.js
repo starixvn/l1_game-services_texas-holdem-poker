@@ -1,23 +1,28 @@
 import PokerRule from '../../../src/helpers/poker-rule';
 
-describe('PokerRule test', () => {
+describe('PokerRule', () => {
   describe('card', () => {
     const cards = [{ rank: 1 }, { rank: 2 }, { rank: 3 }, { rank: 4 }, { rank: 5 }];
     const poker = new PokerRule(cards);
-    it('should return true when card exist', () => {
-      // Act
-      const actual = poker.card(1);
 
-      // Assert
-      expect(actual).toBeTrue();
+    describe('when card exist', () => {
+      it('should return true', () => {
+        // Act
+        const actual = poker.card(1);
+  
+        // Assert
+        expect(actual).toBeTrue();
+      });
     });
 
-    it('should return false when card not exist', () => {
-      // Act
-      const actual = poker.card(0);
-
-      // Assert
-      expect(actual).toBeFalse();
+    describe('when card not exist', () => {
+      it('should return false', () => {
+        // Act
+        const actual = poker.card(0);
+  
+        // Assert
+        expect(actual).toBeFalse();
+      });
     });
   });
 

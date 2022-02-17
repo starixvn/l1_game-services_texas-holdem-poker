@@ -4,26 +4,25 @@ import BaseActionAfterDealingConsumer from '../../../src/consumers/base-action-a
 import UserFoldConsumer from '../../../src/consumers/user-fold-consumer';
 import { actions } from '../../../src/helpers/constants';
 
-describe('UserFoldConsumer test', () => {
+describe('UserFoldConsumer', () => {
   const definition = new Core.GameDefinition({ id: 1, name: 'texas-holdem-poker' });
   const gameData = new Table.TableGameData();
   const publisher = {};
   const logService = { logWarning: jest.fn() };
+  const player = { UID: 1 };
 
-  it('inherit BaseActionAfterDealingConsumer', () => {
-    // Act
-    const consumer = new UserFoldConsumer(definition, gameData, publisher, logService);
+  let consumer = null;
+  beforeEach(() => {
+    consumer = new UserFoldConsumer(definition, gameData, publisher, logService);
+  });
 
+  it('should inherit BaseActionAfterDealingConsumer', () => {
     // Assert
     expect(consumer instanceof BaseActionAfterDealingConsumer);
   });
 
   describe('composeActionValidationCriteria', () => {
     it('should return empty array', async () => {
-      // Arrange
-      const consumer = new UserFoldConsumer(definition, gameData, publisher, logService);
-      const player = { UID: 1 };
-
       // Act
       const actual = await consumer.composeActionValidationCriteria(player, {});
 
@@ -33,16 +32,15 @@ describe('UserFoldConsumer test', () => {
   });
 
   describe('composeBettingTimeValidationCriteria', () => {
-    it('should return expected', async () => {
+    it('should return super result', async () => {
       // Arrange
-      const consumer = new UserFoldConsumer(definition, gameData, publisher, logService);
-      const player = { UID: 1 };
       const expected = [
         {
           failure: true,
           notice: 'cannotProcessBet',
         },
       ];
+
       BaseActionAfterDealingConsumer.prototype.composeBettingTimeValidationCriteria = jest
         .fn(player, actions.fold)
         .mockReturnValue(expected);
@@ -56,13 +54,9 @@ describe('UserFoldConsumer test', () => {
   });
 
   describe('consume', () => {
-    beforeAll(() => {
-      BasePlaceBetConsumer.prototype.consume = jest.fn();
-    });
-    it('should run correctly', async () => {
-      // Arrange
-      const consumer = new UserFoldConsumer(definition, gameData, publisher, logService);
-      const player = { UID: 1 };
+    it('should return super result', async () => {
+       // Arrange
+       BasePlaceBetConsumer.prototype.consume = jest.fn();
 
       // Act
       await consumer.consume(player, {});

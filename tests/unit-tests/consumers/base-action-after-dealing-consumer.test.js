@@ -3,16 +3,15 @@ import BasePlaceBetConsumer from '../../../src/consumers/base-place-bet-consumer
 import BaseActionAfterDealingConsumer from '../../../src/consumers/base-action-after-dealing-consumer';
 import { actions } from '../../../src/helpers/constants';
 
-describe('BaseActionAfterDealingConsumer test', () => {
+describe('BaseActionAfterDealingConsumer', () => {
   const definition = new Core.GameDefinition({ id: 1, name: 'texas-holdem-poker' });
   const gameData = new Table.TableGameData();
   const publisher = {};
   const logService = { logWarning: jest.fn() };
-  const playerName = "a";
   const player = {
     UID: "123",
     profile: {
-      name: playerName,
+      name: "a",
       minBet: 1,
       maxBet: 2000,
     },
@@ -36,8 +35,8 @@ describe('BaseActionAfterDealingConsumer test', () => {
       },
     ];
   });
- 
-  it('inherit BasePlaceBetConsumer', () => {
+
+  it('should inherit BasePlaceBetConsumer', () => {
     // Act
     const consumer = new BaseActionAfterDealingConsumer(
       definition,
@@ -55,174 +54,158 @@ describe('BaseActionAfterDealingConsumer test', () => {
       maxBetChoices: { callBet: 100 },
       maxBet: 1000,
     };
-    // const player = { profile: { name: 'a' }, session: { currencyGroupId: "1", currency: 'IN', language: 'en' }};
-    it('should return expected when amount 500', async () => {
-      // Arrange
-      gameData.ingame = {}
-      const consumer = new BaseActionAfterDealingConsumer(definition, gameData, publisher, logService);
-      const expected = [
+
+    describe('Validate max bet per choice', () => {
+      const testCases = [
         {
-          failure: true,
-          notice: {
-            errorCode: "SB1910",
-            maxBet: "100"
-          },
+          amount: 0,
+          isValidMaxBetChoice: false
         },
         {
-          failure: false,
-          notice: {
-            errorCode: "SB1911",
-            maxBet: "1,000",
-          },
+          amount: 500,
+          isValidMaxBetChoice: true
         },
       ];
 
-      // Act
-      const actual = await consumer.composeActionValidationCriteria(
-        player,
-        500,
-        configs.maxBetChoices.callBet,
-      );
+      it.each(testCases)('should return expected result.', async ({ amount, isValidMaxBetChoice }) => {
+        // Arrange
+        gameData.ingame = {}
+        const consumer = new BaseActionAfterDealingConsumer(definition, gameData, publisher, logService);
+        const expected = [
+          {
+            failure: isValidMaxBetChoice,
+            notice: {
+              errorCode: "SB1910",
+              maxBet: "100"
+            },
+          },
+          {
+            failure: false,
+            notice: {
+              errorCode: "SB1911",
+              maxBet: "1,000",
+            },
+          },
+        ];
 
-      // Assert
-      expect(actual).toStrictEqual(expected);
+        // Act
+        const actual = await consumer.composeActionValidationCriteria(
+          player,
+          amount,
+          configs.maxBetChoices.callBet,
+        );
+
+        // Assert
+        expect(actual).toStrictEqual(expected);
+      });
     });
 
-    it('should return expected when amount 0', async () => {
-      // Arrange
-      gameData.ingame = {}
-      const consumer = new BaseActionAfterDealingConsumer(definition, gameData, publisher, logService);
-      const expected = [
-        {
-          failure: false,
-          notice:  {
-            errorCode: "SB1910",
-            maxBet: "100"
+    describe('when bet amount greater than maxBet per round', () => {
+      it('should return invalid max bet.', async () => {
+        // Arrange
+        gameData.ingame = { [player.profile.name]: { betTracks: { bets: { ante: 1000 } } } };
+        const consumer = new BaseActionAfterDealingConsumer(definition, gameData, publisher, logService);
+        const expected = [
+          {
+            failure: false,
+            notice: {
+              errorCode: "SB1910",
+              maxBet: "100"
+            },
           },
-        },
-        {
-          failure: false,
-          notice: {
-            errorCode: "SB1911",
-            maxBet: "1,000",
+          {
+            failure: true,
+            notice: {
+              errorCode: "SB1911",
+              maxBet: "1,000",
+            },
           },
-        },
-      ];
+        ];
 
+        // Act
+        const actual = await consumer.composeActionValidationCriteria(
+          player,
+          100,
+          configs.maxBetChoices.callBet,
+        );
 
-      // Act
-      const actual = await consumer.composeActionValidationCriteria(
-        player,
-        0,
-        configs.maxBetChoices.callBet,
-      );
-
-      // Assert
-      expect(actual).toStrictEqual(expected);
-    });
-
-    it('should return expected when bet amount greater than maxBet per round', async () => {
-      // Arrange
-      gameData.ingame = { [player.profile.name]: { betTracks: { bets: { ante: 1000 } } } };
-      const consumer = new BaseActionAfterDealingConsumer(definition, gameData, publisher, logService);
-      const expected = [
-        {
-          failure: false,
-          notice:  {
-            errorCode: "SB1910",
-            maxBet: "100"
-          },
-        },
-        {
-          failure: true,
-          notice: {
-            errorCode: "SB1911",
-            maxBet: "1,000",
-          },
-        },
-      ];
-
-      // Act
-      const actual = await consumer.composeActionValidationCriteria(
-        player,
-        100,
-        configs.maxBetChoices.callBet,
-      );
-
-      // Assert
-      expect(actual).toStrictEqual(expected);
+        // Assert
+        expect(actual).toStrictEqual(expected);
+      });
     });
   });
 
   describe('composeBettingTimeValidationCriteria', () => {
-    const player = { profile: { name: 'a' }, session: { currency: 'IN', language: 'en' } };
     beforeEach(() => {
       BasePlaceBetConsumer.prototype.composeBettingTimeValidationCriteria = jest
         .fn()
         .mockReturnValue([]);
     });
-    it('should return expected when empty ingame', async () => {
-      // Arrange
-      gameData.ingame = {};
-      const consumer = new BaseActionAfterDealingConsumer(
-        definition,
-        gameData,
-        publisher,
-        logService,
-      );
-      const expected = [
-        {
-          failure: true,
-          notice: {"errorCode": "SB1935"},
-        },
-      ];
 
-      // Act
-      const actual = await consumer.composeBettingTimeValidationCriteria(player);
+    describe('when ingame is empty', () => {
+      it('should return errorCode SB1935.', async () => {
+        // Arrange
+        gameData.ingame = {};
+        const consumer = new BaseActionAfterDealingConsumer(
+          definition,
+          gameData,
+          publisher,
+          logService,
+        );
+        const expected = [
+          {
+            failure: true,
+            notice: { "errorCode": "SB1935" },
+          },
+        ];
 
-      // Assert
-      expect(consumer.logService.logWarning).toHaveBeenCalledWith(
-        `player ${player.profile.name} ingame undefined`,
-      );
-      expect(actual).toStrictEqual(expected);
+        // Act
+        const actual = await consumer.composeBettingTimeValidationCriteria(player);
+
+        // Assert
+        expect(consumer.logService.logWarning).toHaveBeenCalledWith(
+          `player ${player.profile.name} ingame undefined`,
+        );
+        expect(actual).toStrictEqual(expected);
+      });
     });
 
-    describe('when have ingame', () => {
+    describe('when user ingame', () => {
       const testCases = [
         {
           action: actions.call,
           expected: [
-            { failure: false, notice: {"errorCode": "SB1935"}, },
-            { failure: false, notice: {"errorCode": "SB1935"}, },
-            { failure: false, notice: {"errorCode": "SB1935"}, },
+            { failure: false, notice: { "errorCode": "SB1935" }, },
+            { failure: false, notice: { "errorCode": "SB1935" }, },
+            { failure: false, notice: { "errorCode": "SB1935" }, },
           ],
         },
         {
           action: actions.fold,
           expected: [
-            { failure: false, notice: {"errorCode": "SB1935"}, },
-            { failure: false, notice: {"errorCode": "SB1935"}, },
-            { failure: false, notice: {"errorCode": "SB1935"}, },
+            { failure: false, notice: { "errorCode": "SB1935" }, },
+            { failure: false, notice: { "errorCode": "SB1935" }, },
+            { failure: false, notice: { "errorCode": "SB1935" }, },
           ],
         },
         {
           action: actions.betTurn,
           expected: [
-            { failure: false, notice: {"errorCode": "SB1935"}, },
-            { failure: false, notice: {"errorCode": "SB1935"}, },
-            { failure: true, notice: {"errorCode": "SB1935"}, },
+            { failure: false, notice: { "errorCode": "SB1935" }, },
+            { failure: false, notice: { "errorCode": "SB1935" }, },
+            { failure: true, notice: { "errorCode": "SB1935" }, },
           ],
         },
         {
           action: actions.betRiver,
           expected: [
-            { failure: false, notice: {"errorCode": "SB1935"}, },
-            { failure: false, notice: {"errorCode": "SB1935"}, },
-            { failure: true, notice: {"errorCode": "SB1935"}, },
+            { failure: false, notice: { "errorCode": "SB1935" }, },
+            { failure: false, notice: { "errorCode": "SB1935" }, },
+            { failure: true, notice: { "errorCode": "SB1935" }, },
           ],
         },
       ];
-      it.each(testCases)('should return expected', async ({ action, expected }) => {
+      it.each(testCases)('should return expected.', async ({ action, expected }) => {
         // Arrange
         const data = {
           ingame: { [player.profile.name]: { betTracks: { roundId: 1, communityCards: [] } } },

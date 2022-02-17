@@ -4,16 +4,16 @@ import UserBetRiverConsumer from '../../../src/consumers/user-bet-river-consumer
 import { actions } from '../../../src/helpers/constants';
 import { Table } from 'sc-game-base';
 
-describe('UserBetRiverConsumer test', () => {
+describe('UserBetRiverConsumer', () => {
   const gameData = new Table.TableGameData();
 
   beforeEach(() => {
     BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria = jest
-    .fn()
-    .mockReturnValue([]);
+      .fn()
+      .mockReturnValue([]);
   });
 
-  it('inherit BaseActionAfterDealingConsumer', () => {
+  it('should inherit BaseActionAfterDealingConsumer', () => {
     // Act
     const consumer = new UserBetRiverConsumer();
 
@@ -23,12 +23,10 @@ describe('UserBetRiverConsumer test', () => {
 
   describe('composeActionValidationCriteria', () => {
     const definition = { id: 1 };
-
-    const playerName = "nhanvat01";
     const player = {
       UID: "123",
       profile: {
-        name: playerName,
+        name: "nhanvat01",
         minBet: 1,
         maxBet: 2000,
       },
@@ -50,59 +48,85 @@ describe('UserBetRiverConsumer test', () => {
         maxBetPerChoices: { riverBet: 100 }
       },
     ];
-    it('should run expected when betTracks empty and action is betRiver', async () => {
-      // Arrange
-      gameData.ingame = {};
-      const consumer = new UserBetRiverConsumer(definition, gameData);
-      const payload = { action: actions.betRiver };
 
-      // Act
-      const actual = await consumer.composeActionValidationCriteria(player, payload);
+    let actual = null;
+    const bets = { ante: 10 };
 
-      // Assert
-      expect(
-        BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria,
-      ).toHaveBeenCalledWith(player, 0, 100);
-      expect(actual).toStrictEqual([]);
+    describe('when betTracks empty and action is betRiver', () => {
+      beforeEach(async () => {
+        // Arrange
+        gameData.ingame = {};
+        const consumer = new UserBetRiverConsumer(definition, gameData);
+        const payload = { action: actions.betTurn };
+
+        // Act
+        actual = await consumer.composeActionValidationCriteria(player, payload);
+      });
+
+      it('should call super composeActionValidationCriteria with correct params.', async () => {
+        // Assert
+        expect(
+          BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria,
+        ).toHaveBeenCalledWith(player, 0, 100);
+      });
+
+      it('should return empty result.', async () => {
+        // Assert
+        expect(actual).toStrictEqual([]);
+      });
     });
 
-    it('should run expected when action is betRiver and ante has value', async () => {
-      // Arrange
-      const bets = { ante: 10 };
-      gameData.ingame = { [player.profile.name]: { betTracks: { bets } } };
-      const consumer = new UserBetRiverConsumer(definition, gameData);
-      const payload = { action: actions.betRiver };
+    describe('when action is betRiver and ante has value', () => {
+      beforeEach(async () => {
+        // Arrange
+        gameData.ingame = { [player.profile.name]: { betTracks: { bets } } };
+        const consumer = new UserBetRiverConsumer(definition, gameData);
+        const payload = { action: actions.betRiver };
 
-      // Act
-      const actual = await consumer.composeActionValidationCriteria(player, payload);
+        // Act
+        actual = await consumer.composeActionValidationCriteria(player, payload);
+      });
 
-      // Assert
-      expect(
-        BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria,
-      ).toHaveBeenCalledWith(player, bets.ante, 100);
-      expect(actual).toStrictEqual([]);
+      it('should call super composeActionValidationCriteria with correct params.', async () => {
+        // Assert
+        expect(
+          BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria,
+        ).toHaveBeenCalledWith(player, bets.ante, 100);
+      });
+
+      it('should return empty result.', async () => {
+        // Assert
+        expect(actual).toStrictEqual([]);
+      });
     });
 
-    it('should run expected when action is checkRiver and ante has value', async () => {
-      // Arrange
-      const bets = { ante: 10 };
-      gameData.ingame = { [player.profile.name]: { betTracks: { bets } } };
-      const consumer = new UserBetRiverConsumer(definition, gameData);
-      const payload = { action: actions.checkRiver };
+    describe('when action is checkRiver and ante has value', () => {
+      beforeEach(async () => {
+        // Arrange
+        gameData.ingame = { [player.profile.name]: { betTracks: { bets } } };
+        const consumer = new UserBetRiverConsumer(definition, gameData);
+        const payload = { action: actions.checkRiver };
 
-      // Act
-      const actual = await consumer.composeActionValidationCriteria(player, payload);
+        // Act
+        actual = await consumer.composeActionValidationCriteria(player, payload);
+      });
 
-      // Assert
-      expect(
-        BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria,
-      ).toHaveBeenCalledWith(player, 0, 100);
-      expect(actual).toStrictEqual([]);
+      it('should call super composeActionValidationCriteria with correct params.', async () => {
+        // Assert
+        expect(
+          BaseActionAfterDealingConsumer.prototype.composeActionValidationCriteria,
+        ).toHaveBeenCalledWith(player, 0, 100);
+      });
+
+      it('should return empty result.', async () => {
+        // Assert
+        expect(actual).toStrictEqual([]);
+      });
     });
   });
 
   describe('composeBettingTimeValidationCriteria', () => {
-    it('should run correctly', async () => {
+    it('should return correct result.', async () => {
       // Arrange
       const consumer = new UserBetRiverConsumer();
       const player = { UID: 1 };
@@ -129,53 +153,52 @@ describe('UserBetRiverConsumer test', () => {
     beforeAll(() => {
       BasePlaceBetConsumer.prototype.consume = jest.fn();
     });
-    it('should run correctly when action is betRiver and betTracks empty', async () => {
-      // Arrange
-      const consumer = new UserBetRiverConsumer();
-      consumer.gameData = { ingame: {} };
-      const payload = { action: actions.betRiver };
 
-      // Act
-      await consumer.consume(player, payload);
+    describe('when action is betRiver and betTracks empty', () => {
+      it('should run correctly', async () => {
+        // Arrange
+        const consumer = new UserBetRiverConsumer();
+        consumer.gameData = { ingame: {} };
+        const payload = { action: actions.betRiver };
 
-      // Assert
-      expect(BasePlaceBetConsumer.prototype.consume).toHaveBeenCalledWith(player, payload, {
-        action: actions.betRiver,
-        amount: 0,
+        // Act
+        await consumer.consume(player, payload);
+
+        // Assert
+        expect(BasePlaceBetConsumer.prototype.consume).toHaveBeenCalledWith(player, payload, {
+          action: actions.betRiver,
+          amount: 0,
+        });
       });
     });
 
-    it('should run correctly when action is betRiver and bet ante has value', async () => {
-      // Arrange
-      const consumer = new UserBetRiverConsumer();
-      const bets = { ante: 10 };
-      consumer.gameData = { ingame: { [player.profile.name]: { betTracks: { bets } } } };
-      const payload = { action: actions.betRiver };
+    describe('when action is betRiver/checkRiver bet', () => {
+      const testCases = [
+        {
+          action: actions.betRiver,
+          expectedAmount: 10
+        },
+        {
+          action: actions.checkRiver,
+          expectedAmount: 0
+        }
+      ];
 
-      // Act
-      await consumer.consume(player, payload);
+      it.each(testCases)('should call super comsume with correct params.', async ({ action, expectedAmount }) => {
+        // Arrange
+        const consumer = new UserBetRiverConsumer();
+        const bets = { ante: 10 };
+        consumer.gameData = { ingame: { [player.profile.name]: { betTracks: { bets } } } };
+        const payload = { action: action };
 
-      // Assert
-      expect(BasePlaceBetConsumer.prototype.consume).toHaveBeenCalledWith(player, payload, {
-        action: actions.betRiver,
-        amount: bets.ante,
-      });
-    });
+        // Act
+        await consumer.consume(player, payload);
 
-    it('should run correctly when action is checkRiver and bet ante has value', async () => {
-      // Arrange
-      const consumer = new UserBetRiverConsumer();
-      const bets = { ante: 10 };
-      consumer.gameData = { ingame: { [player.profile.name]: { betTracks: { bets } } } };
-      const payload = { action: actions.checkRiver };
-
-      // Act
-      await consumer.consume(player, payload);
-
-      // Assert
-      expect(BasePlaceBetConsumer.prototype.consume).toHaveBeenCalledWith(player, payload, {
-        action: actions.betRiver,
-        amount: 0,
+        // Assert
+        expect(BasePlaceBetConsumer.prototype.consume).toHaveBeenCalledWith(player, payload, {
+          action: actions.betRiver,
+          amount: expectedAmount,
+        });
       });
     });
   });
