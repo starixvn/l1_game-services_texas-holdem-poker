@@ -16,6 +16,7 @@ import { GameCron, ProcessBetQueue, Bot } from './crons';
 import { SocketRouter, HttpRouter } from './routes';
 import HistoryQuery from './query-apis/history-query';
 import { TexasHoldemPokerBets, TexasHoldemPokerRounds } from './models';
+import UserHoldOrSwapConsumer from './consumers/user-hold-or-swap-consumer';
 
 const { asClass, asValue } = awilix;
 
@@ -52,6 +53,7 @@ export default class ContainerRegistry extends Table.TableContainerRegistry {
       userBetTurnConsumer: asClass(UserBetTurnConsumer).singleton(),
       userBetRiverConsumer: asClass(UserBetRiverConsumer).singleton(),
       userDisconnectConsumer: asClass(UserDisconnectConsumer).singleton(),
+      userHoldOrSwapConsumer: asClass(UserHoldOrSwapConsumer).singleton(),
     });
   }
 

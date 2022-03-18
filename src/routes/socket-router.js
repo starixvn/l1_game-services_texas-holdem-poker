@@ -1,4 +1,4 @@
-import { BaseSocketRouter } from "sc-game-base/src/core/routers";
+import { BaseSocketRouter } from 'sc-game-base/src/core/routers';
 import { actions } from '../helpers/constants';
 
 export default class SocketRouter extends BaseSocketRouter {
@@ -19,6 +19,7 @@ export default class SocketRouter extends BaseSocketRouter {
     userFoldConsumer = null,
     userBetTurnConsumer = null,
     userBetRiverConsumer = null,
+    userHoldOrSwapConsumer = null,
   }) {
     super({
       definition,
@@ -30,7 +31,7 @@ export default class SocketRouter extends BaseSocketRouter {
       userSignInPublisher,
       historyQuery,
       logService,
-      playGamePermissionValidator
+      playGamePermissionValidator,
     });
 
     this.getGameConfigsConsumer = getGameConfigsConsumer;
@@ -39,13 +40,14 @@ export default class SocketRouter extends BaseSocketRouter {
     this.userFoldConsumer = userFoldConsumer;
     this.userBetTurnConsumer = userBetTurnConsumer;
     this.userBetRiverConsumer = userBetRiverConsumer;
+    this.userHoldOrSwapConsumer = userHoldOrSwapConsumer;
   }
 
   init(socketClient) {
     super.init(socketClient);
 
     this.socketClient.on('getTicketDetail', this.handleGetTicketDetail.bind(this));
-    this.socketClient.on("getGameConfigs", this.handleGetGameConfigs.bind(this));
+    this.socketClient.on('getGameConfigs', this.handleGetGameConfigs.bind(this));
   }
 
   async handlePlaceBet(payload) {
@@ -83,6 +85,13 @@ export default class SocketRouter extends BaseSocketRouter {
           case actions.checkRiver:
           case actions.betRiver:
             await this.userBetRiverConsumer.consume(
+              this.gameData.realPlayers[this.socketClient.id],
+              payload,
+            );
+            break;
+          case actions.hold:
+          case actions.swap:
+            await this.userHoldOrSwapConsumer.consume(
               this.gameData.realPlayers[this.socketClient.id],
               payload,
             );
