@@ -301,7 +301,7 @@ describe('Process bet queue test', () => {
         bets: { ante: 100 },
         player: [],
         combinationResult: {},
-        md5: "123"
+        md5: '123',
       };
       const gameData = { ingame: { [player.profile.name]: { betTracks } } };
       const publisher = { publishToUser: jest.fn() };
@@ -316,14 +316,12 @@ describe('Process bet queue test', () => {
       const data = {
         deal: {
           roundId: newRound.id,
-          player: betTracks.player,
-          combinationResult: { player: {} },
           totalAmount: 100,
           choices: betTracks.bets,
         },
         endBet: betTracks.bets.ante,
         user: {},
-        md5: { key: betTracks.md5 }
+        md5: { key: betTracks.md5 },
       };
 
       // Act
@@ -397,7 +395,6 @@ describe('Process bet queue test', () => {
           expect(actual).toStrictEqual(expected);
         });
       });
-
     });
   });
 
@@ -419,7 +416,13 @@ describe('Process bet queue test', () => {
         odds: gameData.gameConfigs.odds,
       };
       const roundsRepository = { create: jest.fn().mockReturnValue(expected) };
-      const communityCardsGenerated = [{ rank: 3 }, { rank: 3 }, { rank: 3 }, { rank: 4 }, { rank: 4 }];
+      const communityCardsGenerated = [
+        { rank: 3 },
+        { rank: 3 },
+        { rank: 3 },
+        { rank: 4 },
+        { rank: 4 },
+      ];
       const definition = {
         generateResult: jest.fn().mockReturnValue({ communityCardsGenerated }),
       };
@@ -549,7 +552,7 @@ describe('Process bet queue test', () => {
   describe('handleSuccessCall', () => {
     it('should run correctly', async () => {
       // Arrange
-      const player = { profile: { name: 'a' }, session: { partnerId: "1W" } };
+      const player = { profile: { name: 'a' }, session: { partnerId: '1W' } };
       const betTracks = {
         roundId: 1,
         combinationResult: { player: { id: 3 } },
@@ -584,7 +587,11 @@ describe('Process bet queue test', () => {
       expect(process.updateRoundWhenContinuesDealing).toHaveBeenCalledWith(player.profile.name);
       expect(betsRepository.update).toHaveBeenCalledWith(
         { phien: betTracks.roundId },
-        { $inc: { call: 100, bet: 100 }, result: betTracks.combinationResult.player, callTime: new Date(123456) },
+        {
+          $inc: { call: 100, bet: 100 },
+          result: betTracks.combinationResult.player,
+          callTime: new Date(123456),
+        },
       );
       expect(publisher.publishToUser).toHaveBeenCalledWith(player.UID, {
         endBet: 100,
@@ -597,7 +604,7 @@ describe('Process bet queue test', () => {
   describe('updateBetTracksAfterCall', () => {
     it('should run correctly', async () => {
       // Arrange
-      const player = { profile: { name: 'a' }, session: { partnerId: "1W" } };
+      const player = { profile: { name: 'a' }, session: { partnerId: '1W' } };
       const betTracks = {
         communityCards: [],
         deck: [{ rank: 3 }, { rank: 4 }, { rank: 5 }],
@@ -606,10 +613,18 @@ describe('Process bet queue test', () => {
       const gameData = { ingame: { [player.profile.name]: { betTracks } } };
       const process = new ProcessBetQueue({ gameData });
       process.updateCombinationPlayerResultInBetTracks = jest.fn();
-      const communityCardsGenerated = [{ rank: 3 }, { rank: 3 }, { rank: 3 }, { rank: 4 }, { rank: 4 }];
+      const communityCardsGenerated = [
+        { rank: 3 },
+        { rank: 3 },
+        { rank: 3 },
+        { rank: 4 },
+        { rank: 4 },
+      ];
       process.roundsRepository = {
         findOne: jest.fn().mockReturnValue({
-          lean: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue({ communityCardsGenerated }) }),
+          lean: jest
+            .fn()
+            .mockReturnValue({ exec: jest.fn().mockReturnValue({ communityCardsGenerated }) }),
         }),
       };
 
@@ -747,7 +762,11 @@ describe('Process bet queue test', () => {
         expect(process.updateRoundWhenContinuesDealing).toHaveBeenCalledWith(player.profile.name);
         expect(process.betsRepository.update).toHaveBeenCalledWith(
           { phien: betTracks.roundId },
-          { $inc: { turn: 10, bet: 10 }, result: betTracks.combinationResult.player, turnTime: new Date(123456) },
+          {
+            $inc: { turn: 10, bet: 10 },
+            result: betTracks.combinationResult.player,
+            turnTime: new Date(123456),
+          },
         );
         expect(publisher.publishToUser).toHaveBeenCalledWith(player.UID, {
           endBet: 10,
@@ -773,7 +792,11 @@ describe('Process bet queue test', () => {
         expect(process.updateRoundWhenContinuesDealing).toHaveBeenCalledWith(player.profile.name);
         expect(process.betsRepository.update).toHaveBeenCalledWith(
           { phien: betTracks.roundId },
-          { $inc: { turn: 0, bet: 0 }, result: betTracks.combinationResult.player, turnTime: new Date(123456) },
+          {
+            $inc: { turn: 0, bet: 0 },
+            result: betTracks.combinationResult.player,
+            turnTime: new Date(123456),
+          },
         );
         expect(publisher.publishToUser).toHaveBeenCalledWith(player.UID, { turn });
       });
@@ -792,10 +815,18 @@ describe('Process bet queue test', () => {
       const process = new ProcessBetQueue({ gameData });
       process.updateCombinationPlayerResultInBetTracks = jest.fn();
 
-      const communityCardsGenerated = [{ rank: 3 }, { rank: 3 }, { rank: 3 }, { rank: 4 }, { rank: 4 }];
+      const communityCardsGenerated = [
+        { rank: 3 },
+        { rank: 3 },
+        { rank: 3 },
+        { rank: 4 },
+        { rank: 4 },
+      ];
       process.roundsRepository = {
         findOne: jest.fn().mockReturnValue({
-          lean: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue({ communityCardsGenerated }) }),
+          lean: jest
+            .fn()
+            .mockReturnValue({ exec: jest.fn().mockReturnValue({ communityCardsGenerated }) }),
         }),
       };
 
@@ -932,14 +963,20 @@ describe('Process bet queue test', () => {
         expect(process.updateBetTracksAfterBetRiver).toHaveBeenCalledWith(player.profile.name, 10);
         expect(process.betsRepository.update).toHaveBeenCalledWith(
           { phien: betTracks.roundId },
-          { $inc: { river: 10, bet: 10 }, result: betTracks.combinationResult.player, riverTime: new Date(123456) },
+          {
+            $inc: { river: 10, bet: 10 },
+            result: betTracks.combinationResult.player,
+            riverTime: new Date(123456),
+          },
         );
         expect(publisher.publishToUser).toHaveBeenCalledWith(player.UID, {
           endBet: 10,
           user: balance,
           river,
         });
-        expect(process.settleGameRoundConsumer.settleRound).toHaveBeenCalledWith(player.profile.name);
+        expect(process.settleGameRoundConsumer.settleRound).toHaveBeenCalledWith(
+          player.profile.name,
+        );
       });
     });
 
@@ -958,10 +995,16 @@ describe('Process bet queue test', () => {
         expect(process.updateBetTracksAfterBetRiver).toHaveBeenCalledWith(player.profile.name, 0);
         expect(process.betsRepository.update).toHaveBeenCalledWith(
           { phien: betTracks.roundId },
-          { $inc: { river: 0, bet: 0 }, result: betTracks.combinationResult.player, riverTime: new Date(123456) },
+          {
+            $inc: { river: 0, bet: 0 },
+            result: betTracks.combinationResult.player,
+            riverTime: new Date(123456),
+          },
         );
         expect(publisher.publishToUser).toHaveBeenCalledWith(player.UID, { river });
-        expect(process.settleGameRoundConsumer.settleRound).toHaveBeenCalledWith(player.profile.name);
+        expect(process.settleGameRoundConsumer.settleRound).toHaveBeenCalledWith(
+          player.profile.name,
+        );
       });
     });
   });
@@ -976,7 +1019,13 @@ describe('Process bet queue test', () => {
         combinationResult: {},
         dealer: [{ rank: 2 }, { rank: 2 }],
       };
-      const communityCardsGenerated = [{ rank: 3 }, { rank: 3 }, { rank: 3 }, { rank: 4 }, { rank: 4 }];
+      const communityCardsGenerated = [
+        { rank: 3 },
+        { rank: 3 },
+        { rank: 3 },
+        { rank: 4 },
+        { rank: 4 },
+      ];
       const gameData = { ingame: { a: { betTracks } } };
       const process = new ProcessBetQueue({ gameData });
       process.updateCombinationPlayerResultInBetTracks = jest.fn();
@@ -984,7 +1033,9 @@ describe('Process bet queue test', () => {
 
       process.roundsRepository = {
         findOne: jest.fn().mockReturnValue({
-          lean: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue({ communityCardsGenerated }) }),
+          lean: jest
+            .fn()
+            .mockReturnValue({ exec: jest.fn().mockReturnValue({ communityCardsGenerated }) }),
         }),
       };
 
@@ -1054,7 +1105,7 @@ describe('Process bet queue test', () => {
       process.handleFailPlaceBetResponse(player, response, actions.deal);
 
       // Assert
-      expect(process.handleFailedBet).toHaveBeenCalledWith(player, "SB1905", {
+      expect(process.handleFailedBet).toHaveBeenCalledWith(player, 'SB1905', {
         betChoice: actions.deal,
       });
     });
@@ -1076,6 +1127,216 @@ describe('Process bet queue test', () => {
           betChoice: actions.deal,
         },
       );
+    });
+  });
+
+  describe('processHold', () => {
+    const player = { UID: 1, profile: { name: 'profile' }, session: {} };
+    const definition = { id: 42 };
+    const gameData = {
+      ingame: {
+        profile: {
+          betTracks: {
+            canSwap: true,
+            roundId: 3,
+            player: [1],
+            combinationResult: {
+              player: [1],
+            },
+          },
+        },
+      },
+    };
+    const betsRepository = {
+      update: jest.fn(),
+    };
+    const roundsRepository = {
+      update: jest.fn(),
+    };
+    const publisher = {
+      publishToUser: jest.fn(),
+    };
+    const processBetQueue = new ProcessBetQueue({
+      definition,
+      gameData,
+      betsRepository,
+      roundsRepository,
+      publisher,
+    });
+
+    describe('when called', () => {
+      it('should set flag canSwap to false', async () => {
+        // Act
+        await processBetQueue.processHold(player);
+
+        // Assert
+        expect(gameData.ingame.profile.betTracks.canSwap).toBeFalse();
+      });
+
+      it('should add a field named holdTime to a bet record', async () => {
+        // Arrange
+        const filter = {
+          phien: 3,
+        };
+        const updater = {
+          holdTime: mockDate,
+        };
+
+        // Act
+        await processBetQueue.processHold(player);
+
+        // Assert
+        expect(betsRepository.update).toBeCalledWith(filter, updater);
+      });
+
+      it('should publish data to user', async () => {
+        // Arrange
+        const userId = 1;
+        const payload = {
+          hold: {
+            roundId: 3,
+            player: [1],
+            combinationResult: {
+              player: [1],
+            },
+          },
+        };
+
+        // Act
+        await processBetQueue.processHold(player);
+
+        // Assert
+        expect(publisher.publishToUser).toBeCalledWith(userId, payload);
+      });
+    });
+  });
+
+  describe('processSwap', () => {
+    const player = { UID: 1, profile: { name: 'profile' }, session: {} };
+    const definition = { id: 42 };
+    const getGameData = () => ({
+      ingame: {
+        profile: {
+          betTracks: {
+            canSwap: true,
+            roundId: 3,
+            player: [1],
+            dealer: [2],
+            combinationResult: {
+              player: [1],
+            },
+          },
+        },
+      },
+    });
+    const betsRepository = {
+      update: jest.fn(),
+    };
+    const roundsRepository = {
+      update: jest.fn(),
+    };
+    const publisher = {
+      publishToUser: jest.fn(),
+    };
+    const processBetQueue = new ProcessBetQueue({
+      definition,
+      gameData: getGameData(),
+      betsRepository,
+      roundsRepository,
+      publisher,
+    });
+
+    processBetQueue.getCombinationResultWhenDeal = jest.fn(() => [3]);
+
+    describe('when called', () => {
+      beforeEach(() => {
+        processBetQueue.gameData = getGameData();
+      });
+
+      it('should set flag canSwap to false', async () => {
+        // Act
+        await processBetQueue.processSwap(player);
+
+        // Assert
+        expect(processBetQueue.gameData.ingame.profile.betTracks.canSwap).toBeFalse();
+      });
+
+      it('should change player cards', async () => {
+        // Act
+        await processBetQueue.processSwap(player);
+
+        // Assert
+        expect(processBetQueue.gameData.ingame.profile.betTracks.player).toStrictEqual([2]);
+      });
+
+      it('should change dealer cards', async () => {
+        // Act
+        await processBetQueue.processSwap(player);
+
+        // Assert
+        expect(processBetQueue.gameData.ingame.profile.betTracks.dealer).toStrictEqual([1]);
+      });
+
+      it('should call getCombinationResultWhenDeal', async () => {
+        // Act
+        await processBetQueue.processSwap(player);
+
+        // Assert
+        expect(processBetQueue.getCombinationResultWhenDeal).toBeCalledWith([2]);
+      });
+
+      it('should calculate combination result of player', async () => {
+        // Act
+        await processBetQueue.processSwap(player);
+
+        // Assert
+        expect(
+          processBetQueue.gameData.ingame.profile.betTracks.combinationResult.player,
+        ).toStrictEqual([3]);
+      });
+
+      it('should update a bet record', async () => {
+        // Arrange
+        const filter = { phien: 3 };
+        const updater = { cards: [2], result: [3], swapTime: mockDate };
+
+        // Act
+        await processBetQueue.processSwap(player);
+
+        // Assert
+        expect(betsRepository.update).toBeCalledWith(filter, updater);
+      });
+
+      it('should update a round record', async () => {
+        // Arrange
+        const filter = { id: 3 };
+        const updater = { result: { dealer: [1] }, isSwap: true };
+
+        // Act
+        await processBetQueue.processSwap(player);
+
+        // Assert
+        expect(roundsRepository.update).toBeCalledWith(filter, updater);
+      });
+
+      it('should publish data to user', async () => {
+        // Arrange
+        const data = {
+          swap: {
+            roundId: 3,
+            player: [2],
+            combinationResult: {
+              player: [3],
+            },
+          },
+        };
+
+        // Act
+        await processBetQueue.processSwap(player);
+
+        // Assert
+        expect(publisher.publishToUser).toBeCalledWith(1, data);
+      });
     });
   });
 });

@@ -1,5 +1,5 @@
 import { Core, Table } from 'sc-game-base';
-import InGameConsumer from "../../../src/consumers/in-game-consumer";
+import InGameConsumer from '../../../src/consumers/in-game-consumer';
 
 jest.mock('sc-base-database');
 
@@ -8,12 +8,13 @@ const realPlayer = {
   profile: { name: 'a' },
   session: {
     currencyGroupId: 1,
-    currencyCode: "USD",
+    currencyCode: 'USD',
     multiplier: 1000,
-  }
+  },
 };
 
-const md5 = "123", odds = { choice01: 2 };
+const md5 = '123',
+  odds = { choice01: 2 };
 
 const buildConsumer = (gameData) => {
   const roundsRepository = {
@@ -31,7 +32,7 @@ const buildConsumer = (gameData) => {
 const buildPreGameData = () => {
   let preGameData = new Table.TableGameData();
   preGameData.md5 = md5;
-  preGameData.resultKey = { rawValue: "456", formatValue: { cards: [], suffix: "aaa" } };
+  preGameData.resultKey = { rawValue: '456', formatValue: { cards: [], suffix: 'aaa' } };
   preGameData.gameConfigs = {
     enabled: true,
     minbet: 1,
@@ -106,25 +107,26 @@ describe('InGameConsumer', () => {
               communityCards: betTracksHasValue.communityCards,
               combinationResult: betTracksHasValue.combinationResult,
               totalAmount: 10,
+              hasSwappedOrHold: true,
             },
             user: { uid: realPlayer.UID, rate: 1000 },
             lastRoundId: 10,
             md5: { key: md5 },
             totalBets: {},
-          }
+          },
         },
         {
           betTracks: emptyBetTracks,
-          expected:
-          {
+          expected: {
             gameConfigs,
             ownBets: {},
             user: { uid: realPlayer.UID, rate: 1000 },
             lastRoundId: 10,
             md5: {},
             totalBets: {},
-          }
-        }];
+          },
+        },
+      ];
 
       it.each(testCases)('should return expected.', async ({ betTracks, expected }) => {
         const gameData = {
