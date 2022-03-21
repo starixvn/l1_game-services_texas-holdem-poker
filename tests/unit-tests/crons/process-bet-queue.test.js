@@ -117,6 +117,40 @@ describe('Process bet queue test', () => {
         );
       });
     });
+
+    describe('when action swap', () => {
+      it('should process swap', async () => {
+        // Arrange
+        const process = new ProcessBetQueue({});
+        const payload = { action: actions.swap };
+        const player = { profile: { name: 'a' } };
+
+        process.processSwap = jest.fn();
+
+        // Act
+        await process.proceedBet(player, payload);
+
+        // Assert
+        expect(process.processSwap).toHaveBeenCalledWith(player);
+      });
+    });
+
+    describe('when action hold', () => {
+      it('should process hold', async () => {
+        // Arrange
+        const process = new ProcessBetQueue({});
+        const payload = { action: actions.hold };
+        const player = { profile: { name: 'a' } };
+
+        process.processHold = jest.fn();
+
+        // Act
+        await process.proceedBet(player, payload);
+
+        // Assert
+        expect(process.processHold).toHaveBeenCalledWith(player);
+      });
+    });
   });
 
   describe('buildPresetCards', () => {
