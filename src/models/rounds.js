@@ -14,8 +14,8 @@ const Schema = new mongoose.Schema({
   odds: { type: Object },
   exchangeRateId: { type: Number, require: true },
   md5: { type: String, require: true },
-  resultKeyRaw: { type: String, require: true },
-  communityCardsGenerated: { type: Array },
+  resultKeyRaw: { type: Object, require: true },
+  communityCardsGenerated: { type: Object },
   isSwap: { type: Boolean, default: false },
 });
 

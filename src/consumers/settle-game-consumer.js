@@ -2,6 +2,7 @@ import { Core } from 'sc-game-base';
 import { gameNotifications } from 'sc-base-database';
 import { ranks } from '../helpers/constants';
 import { getCombinationResult, compareCombination } from '../helpers/result-helper';
+import { decryptObject } from '../helpers/crypto-helper';
 
 export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
   constructor({
@@ -33,17 +34,19 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
     let fold = isFold;
     if (isAutoSettle) {
       if (betTracks.communityCards.length >= 3) {
+        const communityCardsGenerated = decryptObject(round.communityCardsGenerated);
+
         betTracks.combinationResult.dealer = getCombinationResult(
-          betTracks.dealer.concat(round.communityCardsGenerated),
+          betTracks.dealer.concat(communityCardsGenerated),
         );
 
         betTracks.combinationResult.player = getCombinationResult(
-          betTracks.player.concat(round.communityCardsGenerated),
+          betTracks.player.concat(communityCardsGenerated),
         );
 
         this.publisher.publishToUser(betTracks.uid, {
           autoSettle: {
-            communityCards: round.communityCardsGenerated,
+            communityCards: communityCardsGenerated,
             combinationResult: betTracks.combinationResult,
             dealer: betTracks.dealer,
             totalAmount: Object.values(betTracks.bets).reduce((total, item) => total + item),
@@ -99,8 +102,9 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
 
       if (resultKey === undefined) {
         const round = await this.roundsRepository.findOne({ id: roundId }).exec();
-        const cards = bet.cards.concat(round.result.dealer).concat(round.communityCardsGenerated);
-        const suffix = round.resultKeyRaw.split("]")[1];
+        const communityCardsGenerated = decryptObject(round.communityCardsGenerated);
+        const cards = bet.cards.concat(round.result.dealer).concat(communityCardsGenerated);
+        const suffix = round.resultKeyRaw.split(']')[1];
         resultKey = { rawValue: round.resultKeyRaw, formatValue: { cards, suffix } };
       }
 
@@ -186,10 +190,10 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
     const winAmount = betAmount * originalOdds;
 
     switch (type) {
-      case "call":
+      case 'call':
         result.callOdds = originalOdds;
         break;
-      case "turn":
+      case 'turn':
         result.turnOdds = originalOdds;
         break;
       default:

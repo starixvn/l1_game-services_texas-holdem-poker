@@ -4,8 +4,14 @@ import { gameNotifications } from 'sc-base-database';
 import { ranks } from '../../../src/helpers/constants';
 import { compareCombination, getCombinationResult } from '../../../src/helpers/result-helper';
 
+const identity = (input) => input;
+
 jest.mock('sc-base-database');
 jest.mock('../../../src/helpers/result-helper');
+jest.mock('../../../src/helpers/crypto-helper', () => ({
+  decryptObject: identity,
+}));
+
 
 describe('SettleGameConsumer', () => {
   const mockDate = new Date(123456);

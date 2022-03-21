@@ -3,9 +3,19 @@ import { actions, ranks } from '../../../src/helpers/constants';
 import { deal, generateDecks, reGenerateDecks } from '../../../src/helpers/deck-helper';
 import { getCombinationResult } from '../../../src/helpers/result-helper';
 
+const identity = (input) => input;
+
 jest.mock('sc-common');
 jest.mock('../../../src/helpers/result-helper');
 jest.mock('../../../src/helpers/deck-helper');
+jest.mock('../../../src/helpers/crypto-helper', () => ({
+  encrypt: identity,
+  decrypt: identity,
+  encryptObject: identity,
+  decryptObject: identity,
+  randomString: () => '',
+  createHashMD5: identity,
+}));
 
 describe('Process bet queue test', () => {
   const mockDate = new Date(123456);
