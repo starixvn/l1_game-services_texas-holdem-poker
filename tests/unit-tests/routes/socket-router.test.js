@@ -1,4 +1,4 @@
-import { BaseSocketRouter } from "sc-game-base/src/core/routers";
+import { BaseSocketRouter } from 'sc-game-base/src/core/routers';
 import SocketRouter from '../../../src/routes/socket-router';
 import { actions } from '../../../src/helpers/constants';
 
@@ -194,6 +194,44 @@ describe('SocketRouter', () => {
 
         // Assert
         expect(router.userBetRiverConsumer.consume).toHaveBeenCalledWith(realPlayer, payload);
+      });
+    });
+
+    describe('when action hold', () => {
+      it('should call user hold or swap consumer', async () => {
+        // Arrange
+        const router = new SocketRouter({});
+        const payload = { action: actions.hold };
+        router.verify = jest.fn().mockReturnValue(true);
+        router.userHoldOrSwapConsumer = { consume: jest.fn() };
+        router.socketClient = { id: 1 };
+        const realPlayer = { uid: 123 };
+        router.gameData = { realPlayers: { 1: realPlayer } };
+
+        // Act
+        await router.handlePlaceBet(payload);
+
+        // Assert
+        expect(router.userHoldOrSwapConsumer.consume).toHaveBeenCalledWith(realPlayer, payload);
+      });
+    });
+
+    describe('when action swap', () => {
+      it('should call user hold or swap consumer', async () => {
+        // Arrange
+        const router = new SocketRouter({});
+        const payload = { action: actions.swap };
+        router.verify = jest.fn().mockReturnValue(true);
+        router.userHoldOrSwapConsumer = { consume: jest.fn() };
+        router.socketClient = { id: 1 };
+        const realPlayer = { uid: 123 };
+        router.gameData = { realPlayers: { 1: realPlayer } };
+
+        // Act
+        await router.handlePlaceBet(payload);
+
+        // Assert
+        expect(router.userHoldOrSwapConsumer.consume).toHaveBeenCalledWith(realPlayer, payload);
       });
     });
 

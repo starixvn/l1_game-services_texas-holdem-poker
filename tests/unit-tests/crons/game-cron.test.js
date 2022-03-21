@@ -107,6 +107,7 @@ describe('Game Cron test', () => {
             bets: { ante: bet.ante, call: bet.call, turn: bet.turn },
             dealer: [...round.result.dealer],
             communityCards: [...round.result.communityCards],
+            canSwap: true,
           },
           betQueue: [],
         };
@@ -183,7 +184,6 @@ describe('Game Cron test', () => {
         expect(game.bot.run).toHaveBeenCalled();
         expect(game.gameData.remainingTime).toBe(28);
       });
-
     });
 
     describe('when round expire', () => {

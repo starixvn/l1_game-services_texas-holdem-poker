@@ -1,9 +1,9 @@
 import cron from 'cron';
 import moment from 'moment';
 import { logger } from 'sc-common';
-import appConfigs from "../app-configs";
+import appConfigs from '../app-configs';
 import { reGenerateDecks } from '../helpers/deck-helper';
-import { Core } from "sc-game-base";
+import { Core } from 'sc-game-base';
 
 export default class GameCron extends Core.Crons.BaseGameCron {
   constructor({
@@ -96,6 +96,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
             bets: { ante: bet?.ante, call: bet?.call, turn: bet?.turn },
             dealer: [...round.result.dealer],
             communityCards: [...round.result.communityCards],
+            canSwap: !round.isSwap && !bet.holdTime,
           },
           betQueue: [],
         };
