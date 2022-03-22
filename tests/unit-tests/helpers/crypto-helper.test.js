@@ -97,7 +97,7 @@ describe('randomString', () => {
       randomString();
 
       // Assert
-      expect(crypto.randomBytes).toBeCalledWith(23);
+      expect(crypto.randomBytes).toBeCalledWith(22);
     });
 
     it('should return random string', () => {

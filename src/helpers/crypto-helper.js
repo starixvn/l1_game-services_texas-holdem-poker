@@ -3,7 +3,7 @@ import configs from '../app-configs';
 
 const algorithm = 'aes-256-cbc';
 
-export const randomString = (length = 23) => {
+export const randomString = (length = 22) => {
   return crypto
     .randomBytes(length)
     .toString('hex')
