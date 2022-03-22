@@ -13,7 +13,7 @@ jest.mock('../../../src/helpers/crypto-helper', () => ({
   decrypt: identity,
   encryptObject: identity,
   decryptObject: identity,
-  randomString: () => '',
+  randomString: () => 'random',
   createHashMD5: identity,
 }));
 
@@ -468,7 +468,7 @@ describe('Process bet queue test', () => {
         { rank: 4 },
       ];
       const definition = {
-        generateResult: jest.fn().mockReturnValue({ communityCardsGenerated }),
+        generateResult: jest.fn().mockReturnValue(communityCardsGenerated),
       };
       const process = new ProcessBetQueue({ definition, gameData, roundsRepository });
 
@@ -477,6 +477,57 @@ describe('Process bet queue test', () => {
 
       // Assert
       expect(actual).toStrictEqual(expected);
+    });
+
+    it('should call create round as expected arguments', async () => {
+      const player = { UID: 1, profile: { name: 'profile' } };
+      const betTracks = {
+        player: [
+          { rank: 2, suit: 0 },
+          { rank: 2, suit: 1 },
+        ],
+        dealer: [
+          { rank: 1, suit: 0 },
+          { rank: 1, suit: 1 },
+        ],
+        communityCards: [],
+      };
+      const gameData = {
+        exchangeRates: { exId: 1 },
+        gameConfigs: { odds: { callBet: 2 } },
+        ingame: { [player.profile.name]: { betTracks } },
+      };
+
+      const roundsRepository = { create: jest.fn() };
+      const communityCardsGenerated = [
+        { rank: 3, suit: 0 },
+        { rank: 3, suit: 1 },
+        { rank: 3, suit: 2 },
+        { rank: 4, suit: 0 },
+        { rank: 4, suit: 1 },
+      ];
+      const definition = {
+        generateResult: () => communityCardsGenerated,
+      };
+      const process = new ProcessBetQueue({ definition, gameData, roundsRepository });
+      const expected = {
+        id: 10,
+        result: { dealer: betTracks.dealer, communityCards: [] },
+        roundStartTime: new Date(123456),
+        uid: player.UID,
+        name: player.profile.name,
+        odds: gameData.gameConfigs.odds,
+        communityCardsGenerated,
+        exchangeRateId: 1,
+        resultKeyRaw: '{2H 2D, 3H 3D, 4H 4D 4C 5H 5D}_{#10random}',
+        md5: '{2H 2D, 3H 3D, 4H 4D 4C 5H 5D}_{#10random}',
+      };
+
+      // Act
+      await process.createRound(player, 10);
+
+      // Assert
+      expect(roundsRepository.create).toBeCalledWith(expected);
     });
   });
 

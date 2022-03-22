@@ -126,6 +126,30 @@ describe('InGameConsumer', () => {
             totalBets: {},
           },
         },
+        {
+          betTracks: {
+            roundId: 10,
+            bets: { ante: 10 },
+            player: [],
+            communityCards: [],
+            combinationResult: { player: {} },
+            canSwap: true,
+          },
+          expected: {
+            gameConfigs,
+            ownBets: {
+              roundId: betTracksHasValue.roundId,
+              bets: betTracksHasValue.bets,
+              communityCards: [],
+              totalAmount: 10,
+              hasSwappedOrHold: false,
+            },
+            user: { uid: realPlayer.UID, rate: 1000 },
+            lastRoundId: 10,
+            md5: { key: md5 },
+            totalBets: {},
+          },
+        },
       ];
 
       it.each(testCases)('should return expected.', async ({ betTracks, expected }) => {

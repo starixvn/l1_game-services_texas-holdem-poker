@@ -10,7 +10,7 @@ import {
   encryptObject,
   randomString,
 } from '../helpers/crypto-helper';
-import { cardLabels } from '../helpers/card';
+import { cardLabels, getEnglishTerm } from '../helpers/card';
 
 export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
   constructor({
@@ -186,10 +186,13 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
     const resultKeySuffix = randomString();
     const cards = betTracks.player.concat(betTracks.dealer).concat(communityCardsGenerated);
-
-    const resultKeyRaw = `[${cards
-      .map((card) => cardLabels[card.rank])
-      .join(', ')}]${resultKeySuffix}`;
+    const resultKeyRaw = this.createMD5Raw(
+      betTracks.dealer,
+      betTracks.player,
+      communityCardsGenerated,
+      roundId,
+      resultKeySuffix,
+    );
     const md5 = createHashMD5(resultKeyRaw);
 
     betTracks.md5 = md5;
@@ -210,6 +213,16 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
       md5,
       resultKeyRaw: encrypt(resultKeyRaw),
     });
+  }
+
+  createMD5Raw(playerCards, dealerCards, communityCards, roundId, salt) {
+    const cardString = [
+      playerCards.map(getEnglishTerm).join(' '),
+      dealerCards.map(getEnglishTerm).join(' '),
+      communityCards.map(getEnglishTerm).join(' '),
+    ].join(', ');
+
+    return `{${cardString}}_{#${roundId}${salt}}`;
   }
 
   async createBet(player) {
