@@ -519,8 +519,8 @@ describe('Process bet queue test', () => {
         odds: gameData.gameConfigs.odds,
         communityCardsGenerated,
         exchangeRateId: 1,
-        resultKeyRaw: '{2H 2D, 3H 3D, 4H 4D 4C 5H 5D}_{#10random}',
-        md5: '{2H 2D, 3H 3D, 4H 4D 4C 5H 5D}_{#10random}',
+        resultKeyRaw: '{3♥ 3♦, 2♥ 2♦, 4♥ 4♦ 4♣ 5♥ 5♦}_{#10random}',
+        md5: '{3♥ 3♦, 2♥ 2♦, 4♥ 4♦ 4♣ 5♥ 5♦}_{#10random}',
       };
 
       // Act

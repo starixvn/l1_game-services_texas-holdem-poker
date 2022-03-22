@@ -7,6 +7,4 @@ export const cards = types.flatMap((_, index) =>
   values.map((value) => ({ rank: value, suit: index })),
 );
 
-export const getEnglishTermForSuit = (card) => ['H', 'D', 'C', 'S'][card.suit];
-
-export const getEnglishTerm = (card) => `${cardLabels[card.rank]}${getEnglishTermForSuit(card)}`;
+export const cardToString = (card) => `${cardLabels[card.rank]}${types[card.suit]}`;
