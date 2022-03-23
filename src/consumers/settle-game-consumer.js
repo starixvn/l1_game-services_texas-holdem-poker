@@ -61,7 +61,6 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
 
     if (!fold) {
       round.settlementResult = betTracks.combinationResult.dealer;
-      round.settlementResult.isQualified = betTracks.combinationResult.isQualified;
     }
 
     round.result = result;

@@ -29,7 +29,6 @@ export default class HistoryQuery {
         cards: round.result.dealer,
         combination: round.settlementResult?.cards,
         handId: round.settlementResult?.id,
-        isQualified: round.settlementResult?.isQualified,
       };
 
     let bets = [{
@@ -112,7 +111,6 @@ export default class HistoryQuery {
             ...this.convertBet(bet),
             roundId: round.id,
             dealerHandId: round.settlementResult?.id,
-            isQualified: round.settlementResult?.isQualified,
             isPlayerWin: round.settlementResult
               ? compareCombination(round.settlementResult, bet.result)
               : -1,

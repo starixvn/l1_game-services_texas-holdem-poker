@@ -1,6 +1,6 @@
 import { Core } from 'sc-game-base';
 import { deal, generateDecks, reGenerateDecks } from '../helpers/deck-helper';
-import { getCombinationResult, isQualified } from '../helpers/result-helper';
+import { getCombinationResult } from '../helpers/result-helper';
 import { helpers } from 'sc-common';
 import { actions, ranks } from '../helpers/constants';
 import {
@@ -505,7 +505,6 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     );
 
     betTracks.combinationResult.dealer = combinationDealerResult;
-    betTracks.combinationResult.isQualified = isQualified(combinationDealerResult);
   }
 
   updateCombinationPlayerResultInBetTracks(playerName) {

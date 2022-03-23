@@ -46,13 +46,3 @@ export const compareCombination = (a, b) => {
 
   return b.id - a.id;
 };
-
-export const isQualified = (result) => {
-  if (result.id > ranks.onePair) {
-    return true;
-  } else {
-    return result.id === ranks.onePair
-      ? result.cards[0].rank >= 3 || result.cards[0].rank === 0
-      : false;
-  }
-};
