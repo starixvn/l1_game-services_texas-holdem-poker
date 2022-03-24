@@ -2,8 +2,9 @@ import cron from 'cron';
 import moment from 'moment';
 import { logger } from 'sc-common';
 import appConfigs from '../app-configs';
-import { reGenerateDecks } from '../helpers/deck-helper';
+import { buildDeckOfCards, reGenerateDecks } from '../helpers/deck-helper';
 import { Core } from 'sc-game-base';
+import { decrypt, decryptObject } from '../helpers/crypto-helper';
 
 export default class GameCron extends Core.Crons.BaseGameCron {
   constructor({
@@ -84,6 +85,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
           usedCards.push(...bet.cards);
         }
 
+        const generatedResult = decryptObject(round.encryptedResult);
         const newPlayer = {
           name: round.name,
           betTracks: {
@@ -96,7 +98,15 @@ export default class GameCron extends Core.Crons.BaseGameCron {
             bets: { ante: bet?.ante, call: bet?.call, turn: bet?.turn },
             dealer: [...round.result.dealer],
             communityCards: [...round.result.communityCards],
-            canSwap: !round.isSwap && !bet.holdTime,
+            isSwappedOrHold: round.isSwappedOrHold,
+            resultKey: {
+              rawValue: decrypt(round.encryptedMd5),
+              formatValue: {
+                cards: buildDeckOfCards(generatedResult),
+                suffix: generatedResult.suffix,
+              },
+            },
+            generatedResult,
           },
           betQueue: [],
         };

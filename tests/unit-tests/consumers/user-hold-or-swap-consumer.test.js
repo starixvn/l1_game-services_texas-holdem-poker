@@ -36,7 +36,7 @@ describe('UserHoldOrSwapConsumer', () => {
     describe('when cannot swap', () => {
       it('should return a criteria with failure value', async () => {
         // Arrange
-        consumer.gameData.ingame.player = { betTracks: { canSwap: false } };
+        consumer.gameData.ingame.player = { betTracks: { isSwappedOrHold: true } };
         const expected = [{ failure: true, notice: helpers.noticeHelper.invalidBet }];
 
         // Act
@@ -50,7 +50,7 @@ describe('UserHoldOrSwapConsumer', () => {
     describe('when can swap', () => {
       it('should return a falsy criteria', async () => {
         // Arrange
-        consumer.gameData.ingame.player = { betTracks: { canSwap: true } };
+        consumer.gameData.ingame.player = { betTracks: { isSwappedOrHold: false } };
         const expected = [{ failure: false, notice: helpers.noticeHelper.invalidBet }];
 
         // Act

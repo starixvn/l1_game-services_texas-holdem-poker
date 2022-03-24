@@ -4,11 +4,13 @@ import { helpers } from 'sc-common';
 
 export default class UserHoldOrSwapConsumer extends BaseActionAfterDealingConsumer {
   async composeActionValidationCriteria(player) {
-    const { betTracks } = this.gameData.ingame[player.profile.name] || { betTracks: {} };
+    const { betTracks } = this.gameData.ingame[player.profile.name] || {
+      betTracks: { isSwappedOrHold: true },
+    };
 
     return [
       {
-        failure: !betTracks.canSwap,
+        failure: betTracks.isSwappedOrHold,
         notice: helpers.noticeHelper.invalidBet,
       },
     ];
