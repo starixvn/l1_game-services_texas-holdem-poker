@@ -70,6 +70,7 @@ export default class HistoryQuery {
       communityCards: round.result.communityCards,
       bets,
       isFold: bet.isFold,
+      isSwappedOrHold: round.isSwappedOrHold,
       isPlayerWin: round.settlementResult
         ? compareCombination(round.settlementResult, bet.result)
         : -1,

@@ -62,6 +62,7 @@ describe('HistoryQuery', () => {
           ended: true,
           result: { dealer: [{ rank: 2 }], communityCards: [{ rank: 1 }] },
           settlementResult: { id: 1, cards: [{ rank: 2 }, { rank: 1 }] },
+          isSwappedOrHold: true,
           other: 'b',
         };
 
@@ -110,6 +111,7 @@ describe('HistoryQuery', () => {
           communityCards: round.result.communityCards,
           bets,
           isFold: bet.isFold,
+          isSwappedOrHold: true,
           isPlayerWin: 0
         };
 
@@ -144,6 +146,7 @@ describe('HistoryQuery', () => {
         const round = {
           result: { dealer: [{ rank: 2 }], communityCards: [{ rank: 1 }] },
           other: 'b',
+          isSwappedOrHold: true
         };
         const player = {
           cards: bet.cards,
@@ -165,6 +168,7 @@ describe('HistoryQuery', () => {
           bets,
           isFold: bet.isFold,
           isPlayerWin: -1,
+          isSwappedOrHold: true
         };
 
         // Act
