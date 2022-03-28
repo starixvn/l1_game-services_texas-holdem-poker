@@ -75,13 +75,14 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
       roundId: betTracks.roundId,
       odds: round.odds,
       time: new Date(),
+      isAutoSettle
     };
 
     await this.settleBets({ ...finish, playerName, playerUID: betTracks.uid }, fold);
     await gameNotifications.deleteOne({ uid: betTracks.uid, gameId: this.definition.id });
   }
 
-  async settleBets({ roundId, odds, time, playerName, playerUID }, isFold = false) {
+  async settleBets({ isAutoSettle, roundId, odds, time, playerName, playerUID }, isFold = false) {
     const bet = await this.betsRepository.findOne({ phien: roundId, thanhtoan: false }).exec();
     if (bet) {
       const settleOdds = odds ?? this.gameData.gameConfigs.odds;
@@ -108,6 +109,7 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
       this.publisher.publishToUser(playerUID, {
         finish: {
           settlementResult: betResult.settlementResult,
+          isAutoSettle
         },
         md5: { key: betTracks.resultKey },
       });
