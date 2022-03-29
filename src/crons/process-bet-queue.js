@@ -309,7 +309,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
       { id: betTracks.roundId },
       {
         isSwappedOrHold: true,
-        result: { dealer: betTracks.dealer },
+        result: { dealer: betTracks.dealer, communityCards: [] },
       },
     );
 
@@ -343,7 +343,10 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
     await this.roundsRepository.update(
       { id: betTracks.roundId },
-      { result: { dealer: betTracks.dealer }, isSwappedOrHold: true },
+      {
+        result: { dealer: betTracks.dealer, communityCards: [] },
+        isSwappedOrHold: true,
+      },
     );
 
     const swap = {

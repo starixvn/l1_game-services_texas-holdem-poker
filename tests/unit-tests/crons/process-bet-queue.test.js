@@ -1324,6 +1324,7 @@ describe('Process bet queue test', () => {
               { rank: 3, suit: 0 },
               { rank: 4, suit: 0 },
             ],
+            communityCards: [],
           },
         };
 
@@ -1503,6 +1504,7 @@ describe('Process bet queue test', () => {
               { rank: 1, suit: 0 },
               { rank: 2, suit: 0 },
             ],
+            communityCards: [],
           },
           isSwappedOrHold: true,
         };
