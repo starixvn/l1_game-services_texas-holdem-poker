@@ -96,8 +96,8 @@ export default class GameCron extends Core.Crons.BaseGameCron {
             combinationResult: { player: { ...bet?.result } },
             player: bet?.cards,
             bets: { ante: bet?.ante, call: bet?.call, turn: bet?.turn },
-            dealer: [...round.result.dealer],
-            communityCards: [...round.result.communityCards],
+            dealer: [...(round?.result?.dealer || [])],
+            communityCards: [...(round?.result?.communityCards ?? [])],
             isSwappedOrHold: round.isSwappedOrHold,
             resultKey: {
               rawValue: decrypt(round.encryptedMd5),
