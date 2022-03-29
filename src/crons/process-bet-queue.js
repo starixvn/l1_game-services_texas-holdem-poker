@@ -3,13 +3,7 @@ import { buildDeckOfCards, deal, generateDecks, reGenerateDecks } from '../helpe
 import { getCombinationResult } from '../helpers/result-helper';
 import { helpers } from 'sc-common';
 import { actions, ranks } from '../helpers/constants';
-import {
-  createHashMD5,
-  decryptObject,
-  encrypt,
-  encryptObject,
-  randomString,
-} from '../helpers/crypto-helper';
+import { createHashMD5, encrypt, encryptObject, randomString } from '../helpers/crypto-helper';
 import { cardToString } from '../helpers/card';
 
 export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
@@ -42,6 +36,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     this.publisher = publisher;
     this.settleGameRoundConsumer = settleGameRoundConsumer;
   }
+
   async proceedBet(player, payload) {
     try {
       switch (payload.action) {
@@ -127,17 +122,20 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
     const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
     const { response } = apiResult;
+
     if (apiResult.isOk) {
       await this.handleSuccessDeal(player, response, roundId);
     } else {
       this.handleFailPlaceBetResponse(player, response, actions.deal);
     }
+
     betTracks.isDealing = false;
   }
 
   async handleSuccessDeal(player, balance, roundId) {
     const presetCards = this.getPresetCards(player);
     const { betTracks } = this.gameData.ingame[player.profile.name];
+
     betTracks.deck = generateDecks(presetCards);
     deal(betTracks);
 
@@ -198,7 +196,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
     return this.roundsRepository.create({
       id: roundId,
-      result: { dealer: betTracks.dealer, communityCards: [] },
+      result: { dealer: [], communityCards: [] },
       roundStartTime: new Date(),
       uid: player.UID,
       name: player.profile.name,
@@ -228,9 +226,8 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
       name: player.profile.name,
       phien: betTracks.roundId,
       ante: betTracks.bets?.ante,
-      cards: betTracks.player,
+      cards: [],
       bet: betTracks.bets?.ante,
-      result: betTracks.combinationResult.player,
       time: new Date(),
       memberId: player.session?.memberId,
       siteId: player.session?.siteId,
@@ -242,6 +239,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
   async processCall(player, payload) {
     const { betTracks } = this.gameData.ingame[player.profile.name];
     const { amount } = payload;
+
     betTracks.isDealing = true;
 
     const betInfo = {
@@ -274,6 +272,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
       { phien: betTracks.roundId },
       {
         $inc: { call: amount, bet: amount },
+        cards: betTracks.player,
         result: betTracks.combinationResult.player,
         callTime: new Date(),
       },
@@ -291,11 +290,28 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
   async processHold(player) {
     const { betTracks } = this.gameData.ingame[player.profile.name];
+    const generatedResult = betTracks.generatedResult;
 
+    betTracks.player = generatedResult.player;
+    betTracks.dealer = generatedResult.dealer;
+    betTracks.combinationResult.player = this.getCombinationResultWhenDeal(betTracks.player);
     betTracks.isSwappedOrHold = true;
 
-    await this.betsRepository.update({ phien: betTracks.roundId }, { holdTime: new Date() });
-    await this.roundsRepository.update({ id: betTracks.roundId }, { isSwappedOrHold: true });
+    await this.betsRepository.update(
+      { phien: betTracks.roundId },
+      {
+        holdTime: new Date(),
+        cards: betTracks.player,
+        result: betTracks.combinationResult.player,
+      },
+    );
+    await this.roundsRepository.update(
+      { id: betTracks.roundId },
+      {
+        isSwappedOrHold: true,
+        result: { dealer: betTracks.dealer },
+      },
+    );
 
     const hold = {
       roundId: betTracks.roundId,
@@ -309,14 +325,11 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
   async processSwap(player) {
     const playerName = player.profile.name;
     const { betTracks } = this.gameData.ingame[playerName];
-    const beforeSwapCards = {
-      player: betTracks.player,
-      dealer: betTracks.dealer,
-    };
+    const generatedResult = betTracks.generatedResult;
 
     betTracks.isSwappedOrHold = true;
-    betTracks.player = beforeSwapCards.dealer;
-    betTracks.dealer = beforeSwapCards.player;
+    betTracks.player = generatedResult.dealer;
+    betTracks.dealer = generatedResult.player;
     betTracks.combinationResult.player = this.getCombinationResultWhenDeal(betTracks.player);
 
     await this.betsRepository.update(
@@ -500,6 +513,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
   async updateRoundWhenContinuesDealing(playerName) {
     const { betTracks } = this.gameData.ingame[playerName];
+
     await this.roundsRepository.update(
       { id: betTracks.roundId },
       { result: { dealer: betTracks.dealer, communityCards: betTracks.communityCards } },

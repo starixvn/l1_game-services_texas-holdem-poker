@@ -460,7 +460,7 @@ describe('Process bet queue test', () => {
       };
       const expected = {
         id: 10,
-        result: { dealer: betTracks.dealer, communityCards: [] },
+        result: { dealer: [], communityCards: [] },
         roundStartTime: new Date(123456),
         uid: player.UID,
         name: player.profile.name,
@@ -519,7 +519,7 @@ describe('Process bet queue test', () => {
       const process = new ProcessBetQueue({ definition, gameData, roundsRepository });
       const expected = {
         id: 10,
-        result: { dealer: betTracks.dealer, communityCards: [] },
+        result: { dealer: [], communityCards: [] },
         roundStartTime: new Date(123456),
         uid: player.UID,
         name: player.profile.name,
@@ -569,9 +569,8 @@ describe('Process bet queue test', () => {
         name: player.profile.name,
         phien: betTracks.roundId,
         ante: betTracks.bets.ante,
-        cards: betTracks.player,
+        cards: [],
         bet: betTracks.bets.ante,
-        result: betTracks.combinationResult.player,
         time: new Date(123456),
         memberId: player.session.memberId,
         siteId: player.session.siteId,
@@ -1232,11 +1231,28 @@ describe('Process bet queue test', () => {
       ingame: {
         profile: {
           betTracks: {
+            generatedResult: {
+              player: [
+                { rank: 1, suit: 0 },
+                { rank: 2, suit: 0 },
+              ],
+              dealer: [
+                { rank: 3, suit: 0 },
+                { rank: 4, suit: 0 },
+              ],
+            },
             isSwappedOrHold: false,
             roundId: 3,
-            player: [1],
+            player: [
+              { rank: 1, suit: 0 },
+              { rank: 2, suit: 0 },
+            ],
+            dealer: [
+              { rank: 3, suit: 0 },
+              { rank: 4, suit: 0 },
+            ],
             combinationResult: {
-              player: [1],
+              player: {},
             },
           },
         },
@@ -1268,13 +1284,25 @@ describe('Process bet queue test', () => {
         expect(gameData.ingame.profile.betTracks.isSwappedOrHold).toBeTrue();
       });
 
-      it('should add a field named holdTime to a bet record', async () => {
+      it('should add some fields to a bet record', async () => {
         // Arrange
         const filter = {
           phien: 3,
         };
         const updater = {
           holdTime: mockDate,
+          cards: [
+            { rank: 1, suit: 0 },
+            { rank: 2, suit: 0 },
+          ],
+          result: {
+            id: 1,
+            cards: [
+              { rank: 1, suit: 0 },
+              { rank: 2, suit: 0 },
+            ],
+            combinationCards: [{ rank: 2, suit: 0 }],
+          },
         };
 
         // Act
@@ -1284,13 +1312,19 @@ describe('Process bet queue test', () => {
         expect(betsRepository.update).toBeCalledWith(filter, updater);
       });
 
-      it('should set field isSwappedOrHold to true in round record', async () => {
+      it('should add some fields to a round record', async () => {
         // Arrange
         const filter = {
           id: 3,
         };
         const updater = {
           isSwappedOrHold: true,
+          result: {
+            dealer: [
+              { rank: 3, suit: 0 },
+              { rank: 4, suit: 0 },
+            ],
+          },
         };
 
         // Act
@@ -1306,9 +1340,19 @@ describe('Process bet queue test', () => {
         const payload = {
           hold: {
             roundId: 3,
-            player: [1],
+            player: [
+              { rank: 1, suit: 0 },
+              { rank: 2, suit: 0 },
+            ],
             combinationResult: {
-              player: [1],
+              player: {
+                id: 1,
+                cards: [
+                  { rank: 1, suit: 0 },
+                  { rank: 2, suit: 0 },
+                ],
+                combinationCards: [{ rank: 2, suit: 0 }],
+              },
             },
           },
         };
@@ -1331,10 +1375,26 @@ describe('Process bet queue test', () => {
           betTracks: {
             isSwappedOrHold: false,
             roundId: 3,
-            player: [1],
-            dealer: [2],
+            player: [
+              { rank: 1, suit: 0 },
+              { rank: 2, suit: 0 },
+            ],
+            dealer: [
+              { rank: 3, suit: 0 },
+              { rank: 4, suit: 0 },
+            ],
             combinationResult: {
-              player: [1],
+              player: {},
+            },
+            generatedResult: {
+              player: [
+                { rank: 1, suit: 0 },
+                { rank: 2, suit: 0 },
+              ],
+              dealer: [
+                { rank: 3, suit: 0 },
+                { rank: 4, suit: 0 },
+              ],
             },
           },
         },
@@ -1377,7 +1437,10 @@ describe('Process bet queue test', () => {
         await processBetQueue.processSwap(player);
 
         // Assert
-        expect(processBetQueue.gameData.ingame.profile.betTracks.player).toStrictEqual([2]);
+        expect(processBetQueue.gameData.ingame.profile.betTracks.player).toStrictEqual([
+          { rank: 3, suit: 0 },
+          { rank: 4, suit: 0 },
+        ]);
       });
 
       it('should change dealer cards', async () => {
@@ -1385,7 +1448,10 @@ describe('Process bet queue test', () => {
         await processBetQueue.processSwap(player);
 
         // Assert
-        expect(processBetQueue.gameData.ingame.profile.betTracks.dealer).toStrictEqual([1]);
+        expect(processBetQueue.gameData.ingame.profile.betTracks.dealer).toStrictEqual([
+          { rank: 1, suit: 0 },
+          { rank: 2, suit: 0 },
+        ]);
       });
 
       it('should call getCombinationResultWhenDeal', async () => {
@@ -1393,7 +1459,10 @@ describe('Process bet queue test', () => {
         await processBetQueue.processSwap(player);
 
         // Assert
-        expect(processBetQueue.getCombinationResultWhenDeal).toBeCalledWith([2]);
+        expect(processBetQueue.getCombinationResultWhenDeal).toBeCalledWith([
+          { rank: 3, suit: 0 },
+          { rank: 4, suit: 0 },
+        ]);
       });
 
       it('should calculate combination result of player', async () => {
@@ -1409,7 +1478,14 @@ describe('Process bet queue test', () => {
       it('should update a bet record', async () => {
         // Arrange
         const filter = { phien: 3 };
-        const updater = { cards: [2], result: [3], swapTime: mockDate };
+        const updater = {
+          cards: [
+            { rank: 3, suit: 0 },
+            { rank: 4, suit: 0 },
+          ],
+          result: [3],
+          swapTime: mockDate,
+        };
 
         // Act
         await processBetQueue.processSwap(player);
@@ -1421,7 +1497,15 @@ describe('Process bet queue test', () => {
       it('should update a round record', async () => {
         // Arrange
         const filter = { id: 3 };
-        const updater = { result: { dealer: [1] }, isSwappedOrHold: true };
+        const updater = {
+          result: {
+            dealer: [
+              { rank: 1, suit: 0 },
+              { rank: 2, suit: 0 },
+            ],
+          },
+          isSwappedOrHold: true,
+        };
 
         // Act
         await processBetQueue.processSwap(player);
@@ -1435,7 +1519,10 @@ describe('Process bet queue test', () => {
         const data = {
           swap: {
             roundId: 3,
-            player: [2],
+            player: [
+              { rank: 3, suit: 0 },
+              { rank: 4, suit: 0 },
+            ],
             combinationResult: {
               player: [3],
             },
