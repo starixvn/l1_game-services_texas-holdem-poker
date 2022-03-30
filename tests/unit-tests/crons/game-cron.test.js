@@ -59,13 +59,14 @@ describe('Game Cron test', () => {
             lean: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue(null) }),
           }),
         };
-        game.gameData = { roundId: 1 };
+        game.gameData = { roundId: 0 };
 
+        spyOn(game, "getLastArchiveRound").and.returnValue(10);
         // Act
         await game.start();
 
         // Assert
-        expect(game.gameData.roundId).toBe(1);
+        expect(game.gameData.roundId).toBe(10);
         expect(game.initBetTracks).toHaveBeenCalled();
       });
     });
