@@ -39,28 +39,37 @@ export default class HistoryQuery {
       win: bet.settlementResult.ante
     }];
 
-    if (round.ended && !bet.isFold) {
+    if (bet.call > 0) {
       bets = bets.concat([{
         betChoice: "call",
         time: bet.callTime,
         odds: bet.callOdds ?? 0,
         stake: bet.call,
         win: bet.settlementResult.call
-      },
-      {
-        betChoice: "turn",
-        time: bet.turnTime,
-        odds: bet.turnOdds ?? 0,
-        stake: bet.turn,
-        win: bet.settlementResult.turn
-      },
-      {
-        betChoice: "river",
-        time: bet.riverTime,
-        odds: bet.riverOdds ?? 0,
-        stake: bet.river,
-        win: bet.settlementResult.river
-      }
+      }]);
+    }
+
+    if (bet.turn > 0) {
+      bets = bets.concat([
+        {
+          betChoice: "turn",
+          time: bet.turnTime,
+          odds: bet.turnOdds ?? 0,
+          stake: bet.turn,
+          win: bet.settlementResult.turn
+        }
+      ]);
+    }
+
+    if (bet.river > 0) {
+      bets = bets.concat([
+        {
+          betChoice: "river",
+          time: bet.riverTime,
+          odds: bet.riverOdds ?? 0,
+          stake: bet.river,
+          win: bet.settlementResult.river
+        }
       ]);
     }
 
