@@ -4,7 +4,7 @@ import { initUserSession, JEST_ASSERT_WAITING_RESPONSE_TIMEOUT } from "./init-us
 
 let gameClientDriver;
 
-describe("Casino Casino Holdem Service", () => {
+describe("Texas Holdem Service", () => {
     beforeAll(() => {
         // set timeout for jest, waiting for socket response
         jest.setTimeout(JEST_ASSERT_WAITING_RESPONSE_TIMEOUT);
@@ -15,28 +15,28 @@ describe("Casino Casino Holdem Service", () => {
         jest.clearAllTimers();
     });
 
-    it("should return error when get internal server error from api", async (done) => {
-        // Arrange
-        gameClientDriver = new GameClientDriver(socketOptions, initUserSession(internalServerErrorUser));
-        gameClientDriver.handleSignedInEvent(async () => {
-            await gameClientDriver.sendInGameEvent();
+    // it("should return error when get internal server error from api", (done) => {
+    //     // Arrange
+    //     gameClientDriver = new GameClientDriver(socketOptions, initUserSession(internalServerErrorUser));
+    //     gameClientDriver.handleSignedInEvent(() => {
+    //          gameClientDriver.sendInGameEvent();
 
-            // Act
-            gameClientDriver.socket.emit("bet", {
-                action: "deal",
-                anteBet: 10
-            });
+    //         // Act
+    //         gameClientDriver.socket.emit("bet", {
+    //             action: "deal",
+    //             anteBet: 10
+    //         });
 
-            // Assert
-            await gameClientDriver.handleEndBetEvent((endBetData) => {
-                if (endBetData.endBet == -1) {
-                    expect(endBetData.betChoice).toEqual("deal");
-                    expect(endBetData.apiError.errorCode).toEqual("SB1900");
-                    expect(endBetData.apiError.isPlaceBetFailed).toEqual(true);
-                    done();
-                }
+    //         // Assert
+    //         gameClientDriver.handleEndBetEvent((endBetData) => {
+    //             if (endBetData.endBet == -1) {
+    //                 expect(endBetData.betChoice).toEqual("deal");
+    //                 expect(endBetData.apiError.errorCode).toEqual("SB1900");
+    //                 expect(endBetData.apiError.isPlaceBetFailed).toEqual(true);
+    //                 done();
+    //             }
 
-            });
-        });
-    });
+    //         });
+    //     });
+    // });
 });
