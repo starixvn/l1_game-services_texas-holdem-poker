@@ -1539,4 +1539,38 @@ describe('Process bet queue test', () => {
       });
     });
   });
+
+  describe('checkUserStakeLevel', () => {
+    describe('when player min bet different than balance min bet', () => {
+      it('should call updateUserStakeLevel', async () => {
+        const player = { UID: 1, profile: { name: 'a', minBet: 10 }, session: {} };
+        const balance = { minBet: 100, maxBet: 1000 };
+
+        const process = new ProcessBetQueue({});
+        process.updateUserStakeLevel = jest.fn();
+
+        // Act
+        await process.checkUserStakeLevel(player, balance);
+
+        // Assert
+        expect(process.updateUserStakeLevel).toHaveBeenCalledWith(player, balance.minBet, balance.maxBet);
+      });
+    });
+
+    describe('when player max bet different than balance max bet', () => {
+      it('should call updateUserStakeLevel', async () => {
+        const player = { UID: 1, profile: { name: 'a', maxBet: 99 }, session: {} };
+        const balance = { minBet: 100, maxBet: 1000 };
+
+        const process = new ProcessBetQueue({});
+        process.updateUserStakeLevel = jest.fn();
+
+        // Act
+        await process.checkUserStakeLevel(player, balance);
+
+        // Assert
+        expect(process.updateUserStakeLevel).toHaveBeenCalledWith(player, balance.minBet, balance.maxBet);
+      });
+    });
+  });
 });

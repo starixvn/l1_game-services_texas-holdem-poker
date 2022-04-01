@@ -265,6 +265,8 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
   async handleSuccessCall(player, amount, balance) {
     this.updateBetTracksAfterCall(player.profile.name, amount);
+
+    await this.checkUserStakeLevel(player, balance);
     const { betTracks } = this.gameData.ingame[player.profile.name];
 
     await this.updateRoundWhenContinuesDealing(player.profile.name);
@@ -397,6 +399,11 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
   async handleSuccessBetTurn(player, amount, balance) {
     this.updateBetTracksAfterBetTurn(player.profile.name, amount);
+
+    if (balance) {
+      await this.checkUserStakeLevel(player, balance);
+    }
+
     const { betTracks } = this.gameData.ingame[player.profile.name];
 
     await this.updateRoundWhenContinuesDealing(player.profile.name);
@@ -462,6 +469,9 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
   async handleSuccessBetRiver(player, amount, balance) {
     this.updateBetTracksAfterBetRiver(player.profile.name, amount);
+    if (balance) {
+      await this.checkUserStakeLevel(player, balance);
+    }
     const { betTracks } = this.gameData.ingame[player.profile.name];
 
     await this.betsRepository.update(
@@ -536,5 +546,11 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     );
 
     this.handleFailedBet(player, notice, { betChoice: action });
+  }
+
+  async checkUserStakeLevel(player, balance) {
+    if (player.profile.minBet !== balance.minBet || player.profile.maxBet !== balance.maxBet) {
+      await this.updateUserStakeLevel(player, balance.minBet, balance.maxBet);
+    }
   }
 }
