@@ -68,7 +68,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
       this.gameData.roundId = lastRound.id;
     }
     else {
-      this.gameData.roundId = await this.getLastArchiveRound();
+      this.gameData.roundId = await this.getLastArchiveRound() - 1;
   }
 
     await this.initBetTracks();

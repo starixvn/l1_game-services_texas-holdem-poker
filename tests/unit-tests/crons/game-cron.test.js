@@ -66,7 +66,7 @@ describe('Game Cron test', () => {
         await game.start();
 
         // Assert
-        expect(game.gameData.roundId).toBe(10);
+        expect(game.gameData.roundId).toBe(9);
         expect(game.initBetTracks).toHaveBeenCalled();
       });
     });
