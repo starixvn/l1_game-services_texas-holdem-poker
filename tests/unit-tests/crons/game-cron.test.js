@@ -136,6 +136,7 @@ describe('Game Cron test', () => {
               formatValue: {
                 suffix: 'suffix',
                 cards: [],
+                roundId: 2,
               },
             },
           },

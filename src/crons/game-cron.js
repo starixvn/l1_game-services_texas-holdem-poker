@@ -108,6 +108,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
               formatValue: {
                 cards: buildDeckOfCards(generatedResult),
                 suffix: generatedResult.suffix,
+                roundId: round.id
               },
             },
             generatedResult,

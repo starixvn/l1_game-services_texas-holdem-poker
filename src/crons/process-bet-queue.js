@@ -190,7 +190,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     betTracks.md5 = md5;
     betTracks.resultKey = {
       rawValue: md5Plaintext,
-      formatValue: { cards: buildDeckOfCards(generatedResult), suffix: generatedResult.suffix },
+      formatValue: { cards: buildDeckOfCards(generatedResult), suffix: generatedResult.suffix, roundId },
     };
     betTracks.generatedResult = generatedResult;
 
