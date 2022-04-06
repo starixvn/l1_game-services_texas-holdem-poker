@@ -1,10 +1,23 @@
 import moment from 'moment';
-import { reGenerateDecks } from '../../../src/helpers/deck-helper';
+import { reGenerateDecks, buildDeckOfCards } from '../../../src/helpers/deck-helper';
 import GameCron from '../../../src/crons/game-cron';
+
+const identity = (input) => input;
 
 jest.mock('cron');
 jest.mock('sc-common');
 jest.mock('../../../src/helpers/deck-helper');
+
+jest.mock('../../../src/helpers/crypto-helper', () => ({
+  encrypt: identity,
+  decrypt: identity,
+  encryptObject: identity,
+  decryptObject: identity,
+  randomString: () => 'random',
+  createHashMD5: identity,
+}));
+
+buildDeckOfCards.mockReturnValue([]);
 
 describe('Game Cron test', () => {
   describe('start', () => {
@@ -46,13 +59,14 @@ describe('Game Cron test', () => {
             lean: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue(null) }),
           }),
         };
-        game.gameData = { roundId: 1 };
+        game.gameData = { roundId: 0 };
 
+        spyOn(game, "getLastArchiveRound").and.returnValue(10);
         // Act
         await game.start();
 
         // Assert
-        expect(game.gameData.roundId).toBe(1);
+        expect(game.gameData.roundId).toBe(9);
         expect(game.initBetTracks).toHaveBeenCalled();
       });
     });
@@ -69,6 +83,14 @@ describe('Game Cron test', () => {
         communityCards: [{ rank: 1 }, { rank: 2 }, { rank: 3 }],
       },
       name: player.name,
+      encryptedResult: {
+        suffix: 'suffix',
+        dealer: [{ rank: 1 }, { rank: 2 }],
+        community: [{ rank: 1 }, { rank: 2 }, { rank: 3 }, { rank: 4 }, { rank: 5 }],
+        player: [{ rank: 6 }, { rank: 7 }],
+      },
+      isSwappedOrHold: true,
+      encryptedMd5: 'md5',
     };
 
     describe('when have running round and bet', () => {
@@ -107,7 +129,16 @@ describe('Game Cron test', () => {
             bets: { ante: bet.ante, call: bet.call, turn: bet.turn },
             dealer: [...round.result.dealer],
             communityCards: [...round.result.communityCards],
-            canSwap: true,
+            isSwappedOrHold: true,
+            generatedResult: round.encryptedResult,
+            resultKey: {
+              rawValue: 'md5',
+              formatValue: {
+                suffix: 'suffix',
+                cards: [],
+                roundId: 2,
+              },
+            },
           },
           betQueue: [],
         };

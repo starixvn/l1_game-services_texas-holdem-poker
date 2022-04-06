@@ -1,9 +1,8 @@
 import { combination } from './combination-helper';
 import CardCombination from './card-combination';
-import { ranks } from './constants';
 
 export const generateResult = (communityCards, deck) => {
-  const communityCardsGenerated =  [...communityCards]
+  const communityCardsGenerated = [...communityCards];
   while (communityCardsGenerated.length < 5) {
     communityCardsGenerated.push(deck.shift());
   }

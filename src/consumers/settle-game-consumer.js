@@ -2,7 +2,6 @@ import { Core } from 'sc-game-base';
 import { gameNotifications } from 'sc-base-database';
 import { ranks } from '../helpers/constants';
 import { getCombinationResult, compareCombination } from '../helpers/result-helper';
-import { decryptObject } from '../helpers/crypto-helper';
 
 export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
   constructor({
@@ -30,11 +29,13 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
 
   async settleRound(playerName, isFold = false, isAutoSettle = false) {
     const { betTracks } = this.gameData.ingame[playerName];
+    const generatedResult = betTracks.generatedResult;
     const round = await this.roundsRepository.findOne({ id: betTracks.roundId }).exec();
     let fold = isFold;
+
     if (isAutoSettle) {
       if (betTracks.communityCards.length >= 3) {
-        const communityCardsGenerated = decryptObject(round.communityCardsGenerated);
+        const communityCardsGenerated = generatedResult.community;
 
         betTracks.combinationResult.dealer = getCombinationResult(
           betTracks.dealer.concat(communityCardsGenerated),
@@ -57,6 +58,7 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
         fold = true;
       }
     }
+
     const result = { dealer: betTracks.dealer, communityCards: betTracks.communityCards };
 
     if (!fold) {
@@ -73,13 +75,14 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
       roundId: betTracks.roundId,
       odds: round.odds,
       time: new Date(),
+      isAutoSettle
     };
 
     await this.settleBets({ ...finish, playerName, playerUID: betTracks.uid }, fold);
     await gameNotifications.deleteOne({ uid: betTracks.uid, gameId: this.definition.id });
   }
 
-  async settleBets({ roundId, odds, time, playerName, playerUID }, isFold = false) {
+  async settleBets({ isAutoSettle, roundId, odds, time, playerName, playerUID }, isFold = false) {
     const bet = await this.betsRepository.findOne({ phien: roundId, thanhtoan: false }).exec();
     if (bet) {
       const settleOdds = odds ?? this.gameData.gameConfigs.odds;
@@ -97,15 +100,6 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
       bet.riverOdds = betResult.riverOdds;
 
       const { betTracks } = this.gameData.ingame[playerName];
-      let resultKey = betTracks.resultKey;
-
-      if (resultKey === undefined) {
-        const round = await this.roundsRepository.findOne({ id: roundId }).exec();
-        const communityCardsGenerated = decryptObject(round.communityCardsGenerated);
-        const cards = bet.cards.concat(round.result.dealer).concat(communityCardsGenerated);
-        const suffix = round.resultKeyRaw.split(']')[1];
-        resultKey = { rawValue: round.resultKeyRaw, formatValue: { cards, suffix } };
-      }
 
       await bet.save();
       await this.callEndGame(bet, roundId, time, betResult);
@@ -115,8 +109,9 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
       this.publisher.publishToUser(playerUID, {
         finish: {
           settlementResult: betResult.settlementResult,
+          isAutoSettle
         },
-        md5: { key: resultKey },
+        md5: { key: betTracks.resultKey },
       });
     }
   }

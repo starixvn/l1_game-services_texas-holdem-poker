@@ -1,6 +1,11 @@
 import ProcessBetQueue from '../../../src/crons/process-bet-queue';
 import { actions, ranks } from '../../../src/helpers/constants';
-import { deal, generateDecks, reGenerateDecks } from '../../../src/helpers/deck-helper';
+import {
+  deal,
+  generateDecks,
+  reGenerateDecks,
+  buildDeckOfCards,
+} from '../../../src/helpers/deck-helper';
 import { getCombinationResult } from '../../../src/helpers/result-helper';
 
 const identity = (input) => input;
@@ -16,6 +21,8 @@ jest.mock('../../../src/helpers/crypto-helper', () => ({
   randomString: () => 'random',
   createHashMD5: identity,
 }));
+
+buildDeckOfCards.mockReturnValue([]);
 
 describe('Process bet queue test', () => {
   const mockDate = new Date(123456);
@@ -453,7 +460,7 @@ describe('Process bet queue test', () => {
       };
       const expected = {
         id: 10,
-        result: { dealer: betTracks.dealer, communityCards: [] },
+        result: { dealer: [], communityCards: [] },
         roundStartTime: new Date(123456),
         uid: player.UID,
         name: player.profile.name,
@@ -512,14 +519,19 @@ describe('Process bet queue test', () => {
       const process = new ProcessBetQueue({ definition, gameData, roundsRepository });
       const expected = {
         id: 10,
-        result: { dealer: betTracks.dealer, communityCards: [] },
+        result: { dealer: [], communityCards: [] },
         roundStartTime: new Date(123456),
         uid: player.UID,
         name: player.profile.name,
         odds: gameData.gameConfigs.odds,
-        communityCardsGenerated,
+        encryptedResult: {
+          community: communityCardsGenerated,
+          player: betTracks.player,
+          dealer: betTracks.dealer,
+          suffix: 'random',
+        },
         exchangeRateId: 1,
-        resultKeyRaw: '{3♥ 3♦, 2♥ 2♦, 4♥ 4♦ 4♣ 5♥ 5♦}_{#10random}',
+        encryptedMd5: '{3♥ 3♦, 2♥ 2♦, 4♥ 4♦ 4♣ 5♥ 5♦}_{#10random}',
         md5: '{3♥ 3♦, 2♥ 2♦, 4♥ 4♦ 4♣ 5♥ 5♦}_{#10random}',
       };
 
@@ -557,9 +569,8 @@ describe('Process bet queue test', () => {
         name: player.profile.name,
         phien: betTracks.roundId,
         ante: betTracks.bets.ante,
-        cards: betTracks.player,
+        cards: [],
         bet: betTracks.bets.ante,
-        result: betTracks.combinationResult.player,
         time: new Date(123456),
         memberId: player.session.memberId,
         siteId: player.session.siteId,
@@ -697,17 +708,9 @@ describe('Process bet queue test', () => {
   });
 
   describe('updateBetTracksAfterCall', () => {
-    it('should run correctly', async () => {
+    it('should run correctly', () => {
       // Arrange
       const player = { profile: { name: 'a' }, session: { partnerId: '1W' } };
-      const betTracks = {
-        communityCards: [],
-        deck: [{ rank: 3 }, { rank: 4 }, { rank: 5 }],
-        bets: { ante: 100 },
-      };
-      const gameData = { ingame: { [player.profile.name]: { betTracks } } };
-      const process = new ProcessBetQueue({ gameData });
-      process.updateCombinationPlayerResultInBetTracks = jest.fn();
       const communityCardsGenerated = [
         { rank: 3 },
         { rank: 3 },
@@ -715,16 +718,20 @@ describe('Process bet queue test', () => {
         { rank: 4 },
         { rank: 4 },
       ];
-      process.roundsRepository = {
-        findOne: jest.fn().mockReturnValue({
-          lean: jest
-            .fn()
-            .mockReturnValue({ exec: jest.fn().mockReturnValue({ communityCardsGenerated }) }),
-        }),
+      const betTracks = {
+        communityCards: [],
+        deck: [{ rank: 3 }, { rank: 4 }, { rank: 5 }],
+        bets: { ante: 100 },
+        generatedResult: {
+          community: communityCardsGenerated,
+        },
       };
+      const gameData = { ingame: { [player.profile.name]: { betTracks } } };
+      const process = new ProcessBetQueue({ gameData });
+      process.updateCombinationPlayerResultInBetTracks = jest.fn();
 
       // Act
-      await process.updateBetTracksAfterCall(player.profile.name, 100);
+      process.updateBetTracksAfterCall(player.profile.name, 100);
 
       // Assert
       expect(betTracks.bets.call).toBe(100);
@@ -899,17 +906,8 @@ describe('Process bet queue test', () => {
   });
 
   describe('updateBetTracksAfterBetTurn', () => {
-    it('should run correctly', async () => {
+    it('should run correctly', () => {
       // Arrange
-      const betTracks = {
-        bets: { ante: 10, call: 10 },
-        deck: [{ rank: 5 }],
-        communityCards: [{ rank: 1 }, { rank: 1 }, { rank: 1 }],
-      };
-      const gameData = { ingame: { a: { betTracks } } };
-      const process = new ProcessBetQueue({ gameData });
-      process.updateCombinationPlayerResultInBetTracks = jest.fn();
-
       const communityCardsGenerated = [
         { rank: 3 },
         { rank: 3 },
@@ -917,16 +915,21 @@ describe('Process bet queue test', () => {
         { rank: 4 },
         { rank: 4 },
       ];
-      process.roundsRepository = {
-        findOne: jest.fn().mockReturnValue({
-          lean: jest
-            .fn()
-            .mockReturnValue({ exec: jest.fn().mockReturnValue({ communityCardsGenerated }) }),
-        }),
+      const betTracks = {
+        bets: { ante: 10, call: 10 },
+        deck: [{ rank: 5 }],
+        communityCards: [{ rank: 1 }, { rank: 1 }, { rank: 1 }],
+        generatedResult: {
+          community: communityCardsGenerated,
+        },
       };
 
+      const gameData = { ingame: { a: { betTracks } } };
+      const process = new ProcessBetQueue({ gameData });
+      process.updateCombinationPlayerResultInBetTracks = jest.fn();
+
       // Act
-      await process.updateBetTracksAfterBetTurn('a', 10);
+      process.updateBetTracksAfterBetTurn('a', 10);
 
       // Assert
       expect(betTracks.bets.turn).toBe(10);
@@ -1105,15 +1108,8 @@ describe('Process bet queue test', () => {
   });
 
   describe('updateBetTracksAfterBetRiver', () => {
-    it('should run correctly', async () => {
+    it('should run correctly', () => {
       // Arrange
-      const betTracks = {
-        bets: { ante: 10, call: 10, turn: 10 },
-        deck: [{ rank: 5 }],
-        communityCards: [{ rank: 1 }, { rank: 1 }, { rank: 1 }, { rank: 1 }],
-        combinationResult: {},
-        dealer: [{ rank: 2 }, { rank: 2 }],
-      };
       const communityCardsGenerated = [
         { rank: 3 },
         { rank: 3 },
@@ -1121,21 +1117,24 @@ describe('Process bet queue test', () => {
         { rank: 4 },
         { rank: 4 },
       ];
+      const betTracks = {
+        bets: { ante: 10, call: 10, turn: 10 },
+        deck: [{ rank: 5 }],
+        communityCards: [{ rank: 1 }, { rank: 1 }, { rank: 1 }, { rank: 1 }],
+        combinationResult: {},
+        dealer: [{ rank: 2 }, { rank: 2 }],
+        generatedResult: {
+          community: communityCardsGenerated,
+        },
+      };
+
       const gameData = { ingame: { a: { betTracks } } };
       const process = new ProcessBetQueue({ gameData });
       process.updateCombinationPlayerResultInBetTracks = jest.fn();
       getCombinationResult.mockReturnValue({ id: 2 });
 
-      process.roundsRepository = {
-        findOne: jest.fn().mockReturnValue({
-          lean: jest
-            .fn()
-            .mockReturnValue({ exec: jest.fn().mockReturnValue({ communityCardsGenerated }) }),
-        }),
-      };
-
       // Act
-      await process.updateBetTracksAfterBetRiver('a', 10);
+      process.updateBetTracksAfterBetRiver('a', 10);
 
       // Assert
       expect(betTracks.bets.river).toBe(10);
@@ -1232,11 +1231,28 @@ describe('Process bet queue test', () => {
       ingame: {
         profile: {
           betTracks: {
-            canSwap: true,
+            generatedResult: {
+              player: [
+                { rank: 1, suit: 0 },
+                { rank: 2, suit: 0 },
+              ],
+              dealer: [
+                { rank: 3, suit: 0 },
+                { rank: 4, suit: 0 },
+              ],
+            },
+            isSwappedOrHold: false,
             roundId: 3,
-            player: [1],
+            player: [
+              { rank: 1, suit: 0 },
+              { rank: 2, suit: 0 },
+            ],
+            dealer: [
+              { rank: 3, suit: 0 },
+              { rank: 4, suit: 0 },
+            ],
             combinationResult: {
-              player: [1],
+              player: {},
             },
           },
         },
@@ -1260,21 +1276,33 @@ describe('Process bet queue test', () => {
     });
 
     describe('when called', () => {
-      it('should set flag canSwap to false', async () => {
+      it('should set flag isSwappedOrHold to true', async () => {
         // Act
         await processBetQueue.processHold(player);
 
         // Assert
-        expect(gameData.ingame.profile.betTracks.canSwap).toBeFalse();
+        expect(gameData.ingame.profile.betTracks.isSwappedOrHold).toBeTrue();
       });
 
-      it('should add a field named holdTime to a bet record', async () => {
+      it('should add some fields to a bet record', async () => {
         // Arrange
         const filter = {
           phien: 3,
         };
         const updater = {
           holdTime: mockDate,
+          cards: [
+            { rank: 1, suit: 0 },
+            { rank: 2, suit: 0 },
+          ],
+          result: {
+            id: 1,
+            cards: [
+              { rank: 1, suit: 0 },
+              { rank: 2, suit: 0 },
+            ],
+            combinationCards: [{ rank: 2, suit: 0 }],
+          },
         };
 
         // Act
@@ -1284,15 +1312,48 @@ describe('Process bet queue test', () => {
         expect(betsRepository.update).toBeCalledWith(filter, updater);
       });
 
+      it('should add some fields to a round record', async () => {
+        // Arrange
+        const filter = {
+          id: 3,
+        };
+        const updater = {
+          isSwappedOrHold: true,
+          result: {
+            dealer: [
+              { rank: 3, suit: 0 },
+              { rank: 4, suit: 0 },
+            ],
+            communityCards: [],
+          },
+        };
+
+        // Act
+        await processBetQueue.processHold(player);
+
+        // Assert
+        expect(roundsRepository.update).toBeCalledWith(filter, updater);
+      });
+
       it('should publish data to user', async () => {
         // Arrange
         const userId = 1;
         const payload = {
           hold: {
             roundId: 3,
-            player: [1],
+            player: [
+              { rank: 1, suit: 0 },
+              { rank: 2, suit: 0 },
+            ],
             combinationResult: {
-              player: [1],
+              player: {
+                id: 1,
+                cards: [
+                  { rank: 1, suit: 0 },
+                  { rank: 2, suit: 0 },
+                ],
+                combinationCards: [{ rank: 2, suit: 0 }],
+              },
             },
           },
         };
@@ -1313,12 +1374,28 @@ describe('Process bet queue test', () => {
       ingame: {
         profile: {
           betTracks: {
-            canSwap: true,
+            isSwappedOrHold: false,
             roundId: 3,
-            player: [1],
-            dealer: [2],
+            player: [
+              { rank: 1, suit: 0 },
+              { rank: 2, suit: 0 },
+            ],
+            dealer: [
+              { rank: 3, suit: 0 },
+              { rank: 4, suit: 0 },
+            ],
             combinationResult: {
-              player: [1],
+              player: {},
+            },
+            generatedResult: {
+              player: [
+                { rank: 1, suit: 0 },
+                { rank: 2, suit: 0 },
+              ],
+              dealer: [
+                { rank: 3, suit: 0 },
+                { rank: 4, suit: 0 },
+              ],
             },
           },
         },
@@ -1348,12 +1425,12 @@ describe('Process bet queue test', () => {
         processBetQueue.gameData = getGameData();
       });
 
-      it('should set flag canSwap to false', async () => {
+      it('should set flag isSwappedOrHold to true', async () => {
         // Act
         await processBetQueue.processSwap(player);
 
         // Assert
-        expect(processBetQueue.gameData.ingame.profile.betTracks.canSwap).toBeFalse();
+        expect(processBetQueue.gameData.ingame.profile.betTracks.isSwappedOrHold).toBeTrue();
       });
 
       it('should change player cards', async () => {
@@ -1361,7 +1438,10 @@ describe('Process bet queue test', () => {
         await processBetQueue.processSwap(player);
 
         // Assert
-        expect(processBetQueue.gameData.ingame.profile.betTracks.player).toStrictEqual([2]);
+        expect(processBetQueue.gameData.ingame.profile.betTracks.player).toStrictEqual([
+          { rank: 3, suit: 0 },
+          { rank: 4, suit: 0 },
+        ]);
       });
 
       it('should change dealer cards', async () => {
@@ -1369,7 +1449,10 @@ describe('Process bet queue test', () => {
         await processBetQueue.processSwap(player);
 
         // Assert
-        expect(processBetQueue.gameData.ingame.profile.betTracks.dealer).toStrictEqual([1]);
+        expect(processBetQueue.gameData.ingame.profile.betTracks.dealer).toStrictEqual([
+          { rank: 1, suit: 0 },
+          { rank: 2, suit: 0 },
+        ]);
       });
 
       it('should call getCombinationResultWhenDeal', async () => {
@@ -1377,7 +1460,10 @@ describe('Process bet queue test', () => {
         await processBetQueue.processSwap(player);
 
         // Assert
-        expect(processBetQueue.getCombinationResultWhenDeal).toBeCalledWith([2]);
+        expect(processBetQueue.getCombinationResultWhenDeal).toBeCalledWith([
+          { rank: 3, suit: 0 },
+          { rank: 4, suit: 0 },
+        ]);
       });
 
       it('should calculate combination result of player', async () => {
@@ -1393,7 +1479,14 @@ describe('Process bet queue test', () => {
       it('should update a bet record', async () => {
         // Arrange
         const filter = { phien: 3 };
-        const updater = { cards: [2], result: [3], swapTime: mockDate };
+        const updater = {
+          cards: [
+            { rank: 3, suit: 0 },
+            { rank: 4, suit: 0 },
+          ],
+          result: [3],
+          swapTime: mockDate,
+        };
 
         // Act
         await processBetQueue.processSwap(player);
@@ -1405,7 +1498,16 @@ describe('Process bet queue test', () => {
       it('should update a round record', async () => {
         // Arrange
         const filter = { id: 3 };
-        const updater = { result: { dealer: [1] }, isSwap: true };
+        const updater = {
+          result: {
+            dealer: [
+              { rank: 1, suit: 0 },
+              { rank: 2, suit: 0 },
+            ],
+            communityCards: [],
+          },
+          isSwappedOrHold: true,
+        };
 
         // Act
         await processBetQueue.processSwap(player);
@@ -1419,7 +1521,10 @@ describe('Process bet queue test', () => {
         const data = {
           swap: {
             roundId: 3,
-            player: [2],
+            player: [
+              { rank: 3, suit: 0 },
+              { rank: 4, suit: 0 },
+            ],
             combinationResult: {
               player: [3],
             },
@@ -1431,6 +1536,40 @@ describe('Process bet queue test', () => {
 
         // Assert
         expect(publisher.publishToUser).toBeCalledWith(1, data);
+      });
+    });
+  });
+
+  describe('checkUserStakeLevel', () => {
+    describe('when player min bet different than balance min bet', () => {
+      it('should call updateUserStakeLevel', async () => {
+        const player = { UID: 1, profile: { name: 'a', minBet: 10 }, session: {} };
+        const balance = { minBet: 100, maxBet: 1000 };
+
+        const process = new ProcessBetQueue({});
+        process.updateUserStakeLevel = jest.fn();
+
+        // Act
+        await process.checkUserStakeLevel(player, balance);
+
+        // Assert
+        expect(process.updateUserStakeLevel).toHaveBeenCalledWith(player, balance.minBet, balance.maxBet);
+      });
+    });
+
+    describe('when player max bet different than balance max bet', () => {
+      it('should call updateUserStakeLevel', async () => {
+        const player = { UID: 1, profile: { name: 'a', maxBet: 99 }, session: {} };
+        const balance = { minBet: 100, maxBet: 1000 };
+
+        const process = new ProcessBetQueue({});
+        process.updateUserStakeLevel = jest.fn();
+
+        // Act
+        await process.checkUserStakeLevel(player, balance);
+
+        // Assert
+        expect(process.updateUserStakeLevel).toHaveBeenCalledWith(player, balance.minBet, balance.maxBet);
       });
     });
   });

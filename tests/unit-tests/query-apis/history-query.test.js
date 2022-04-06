@@ -33,7 +33,20 @@ describe('HistoryQuery', () => {
   });
 
   describe('convertTicketDetail', () => {
-    describe('when isFold false round is ended', () => {
+    const round = {
+      ended: true,
+      result: { dealer: [{ rank: 2 }], communityCards: [{ rank: 1 }] },
+      settlementResult: { id: 1, cards: [{ rank: 2 }, { rank: 1 }] },
+      isSwappedOrHold: true,
+      other: 'b',
+    };
+
+    const dealer = {
+      cards: round.result.dealer,
+      combination: round.settlementResult.cards,
+      handId: round.settlementResult.id
+    };
+    describe('when round is ended', () => {
       it('should return expected', () => {
         // Arrange
         const bet = {
@@ -58,23 +71,12 @@ describe('HistoryQuery', () => {
           turnTime: new Date(123),
         };
 
-        const round = {
-          ended: true,
-          result: { dealer: [{ rank: 2 }], communityCards: [{ rank: 1 }] },
-          settlementResult: { id: 1, cards: [{ rank: 2 }, { rank: 1 }] },
-          other: 'b',
-        };
-
         const player = {
           cards: bet.cards,
           combination: bet.result.cards,
           handId: bet.result.id,
         };
-        const dealer = {
-          cards: round.result.dealer,
-          combination: round.settlementResult.cards,
-          handId: round.settlementResult.id
-        };
+
         const bets = [{
           betChoice: "ante",
           time: bet.time,
@@ -110,10 +112,137 @@ describe('HistoryQuery', () => {
           communityCards: round.result.communityCards,
           bets,
           isFold: bet.isFold,
+          isSwappedOrHold: true,
           isPlayerWin: 0
         };
 
         compareCombination.mockReturnValue(0);
+
+        // Act
+        const actual = query.convertTicketDetail(bet, round);
+
+        // Assert
+        expect(actual).toStrictEqual(expected);
+      });
+    });
+
+    describe('when player call', () => {
+      it('should return expected', () => {
+        // Arrange
+        const bet = {
+          isFold: false,
+          bet: 30,
+          betWin: 0,
+          result: { id: 2, cards: [{ rank: 1 }, { rank: 1 }] },
+          settlementResult: { ante: 0, call: 0, turn: 0, river: 0 },
+          cards: [{ rank: 1 }],
+          ante: 10,
+          anteOdds: 2,
+          callOdds: 2,
+          call: 10,
+          other: 'a',
+          time: new Date(123),
+          callTime: new Date(123),
+        };
+
+        const player = {
+          cards: bet.cards,
+          combination: bet.result.cards,
+          handId: bet.result.id,
+        };
+
+        const bets = [{
+          betChoice: "ante",
+          time: bet.time,
+          odds: bet.anteOdds,
+          stake: bet.ante,
+          win: bet.settlementResult.ante
+        },
+        {
+          betChoice: "call",
+          time: bet.callTime,
+          odds: bet.callOdds,
+          stake: bet.call,
+          win: bet.settlementResult.call
+        },];
+
+        const expected = {
+          player,
+          dealer,
+          communityCards: round.result.communityCards,
+          bets,
+          isFold: bet.isFold,
+          isSwappedOrHold: true,
+          isPlayerWin: 0
+        };
+
+        // Act
+        const actual = query.convertTicketDetail(bet, round);
+
+        // Assert
+        expect(actual).toStrictEqual(expected);
+      });
+    });
+
+    describe('when player turn', () => {
+      it('should return expected', () => {
+        // Arrange
+        const bet = {
+          isFold: false,
+          bet: 30,
+          betWin: 0,
+          result: { id: 2, cards: [{ rank: 1 }, { rank: 1 }] },
+          settlementResult: { ante: 0, call: 0, turn: 0, river: 0 },
+          cards: [{ rank: 1 }],
+          ante: 10,
+          anteOdds: 2,
+          callOdds: 2,
+          turnOdds: 2,
+          call: 10,
+          turn: 10,
+          other: 'a',
+          time: new Date(123),
+          callTime: new Date(123),
+          turnTime: new Date(123),
+        };
+
+        const player = {
+          cards: bet.cards,
+          combination: bet.result.cards,
+          handId: bet.result.id,
+        };
+
+        const bets = [{
+          betChoice: "ante",
+          time: bet.time,
+          odds: bet.anteOdds,
+          stake: bet.ante,
+          win: bet.settlementResult.ante
+        },
+        {
+          betChoice: "call",
+          time: bet.callTime,
+          odds: bet.callOdds,
+          stake: bet.call,
+          win: bet.settlementResult.call
+        },
+        {
+          betChoice: "turn",
+          time: bet.turnTime,
+          odds: bet.turnOdds,
+          stake: bet.turn,
+          win: bet.settlementResult.turn
+        }];
+
+        const expected = {
+          player,
+          dealer,
+          communityCards: round.result.communityCards,
+          bets,
+          isFold: bet.isFold,
+          isSwappedOrHold: true,
+          isPlayerWin: 0
+        };
 
         // Act
         const actual = query.convertTicketDetail(bet, round);
@@ -134,17 +263,17 @@ describe('HistoryQuery', () => {
           settlementResult: { ante: 0, call: 0, turn: 0, river: 0 },
           cards: [{ rank: 1 }],
           ante: 10,
-          call: 0,
-          turn: 10,
-          river: 10,
           other: 'a',
           anteOdds: 2,
           time: new Date(123),
         };
-        const round = {
+
+        const roundWithFold = {
           result: { dealer: [{ rank: 2 }], communityCards: [{ rank: 1 }] },
           other: 'b',
+          isSwappedOrHold: true
         };
+
         const player = {
           cards: bet.cards,
           combination: bet.result.cards,
@@ -161,14 +290,15 @@ describe('HistoryQuery', () => {
         const expected = {
           player,
           dealer: {},
-          communityCards: round.result.communityCards,
+          communityCards: roundWithFold.result.communityCards,
           bets,
           isFold: bet.isFold,
           isPlayerWin: -1,
+          isSwappedOrHold: true
         };
 
         // Act
-        const actual = query.convertTicketDetail(bet, round);
+        const actual = query.convertTicketDetail(bet, roundWithFold);
 
         // Assert
         expect(actual).toStrictEqual(expected);

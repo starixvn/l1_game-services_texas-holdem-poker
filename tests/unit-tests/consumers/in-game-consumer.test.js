@@ -87,6 +87,7 @@ describe('InGameConsumer', () => {
         player: [],
         communityCards: [{ rank: 0, suit: 1 }],
         combinationResult: { player: {} },
+        isSwappedOrHold: true,
       };
 
       const emptyBetTracks = {};
@@ -133,7 +134,7 @@ describe('InGameConsumer', () => {
             player: [],
             communityCards: [],
             combinationResult: { player: {} },
-            canSwap: true,
+            isSwappedOrHold: false,
           },
           expected: {
             gameConfigs,

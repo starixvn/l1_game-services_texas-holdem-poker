@@ -4,7 +4,7 @@ import { initUserSession, JEST_ASSERT_WAITING_RESPONSE_TIMEOUT } from "./init-us
 
 let gameClientDriver;
 
-describe("Casino Casino Holdem Service", () => {
+describe("Texas Holdem Service", () => {
     beforeAll(() => {
         // set timeout for jest, waiting for socket response
         jest.setTimeout(JEST_ASSERT_WAITING_RESPONSE_TIMEOUT);
@@ -15,11 +15,11 @@ describe("Casino Casino Holdem Service", () => {
         jest.clearAllTimers();
     });
 
-    it("should return error when place bet failed", async (done) => {
+    it("should return error when place bet failed", (done) => {
         // Arrange
         gameClientDriver = new GameClientDriver(socketOptions, initUserSession(errorUser));
-        await gameClientDriver.handleSignedInEvent(async () => {
-            await gameClientDriver.sendInGameEvent();
+        gameClientDriver.handleSignedInEvent(async () => {
+            gameClientDriver.sendInGameEvent();
             // Act
             gameClientDriver.socket.emit("bet", {
                 action: "deal",
@@ -27,10 +27,10 @@ describe("Casino Casino Holdem Service", () => {
             });
 
             // Assert
-            await gameClientDriver.handleEndBetEvent((endBetData) => {
+            gameClientDriver.handleEndBetEvent((endBetData) => {
                 if (endBetData.endBet == -1) {
                     expect(endBetData.betChoice).toEqual("deal");
-                    expect(endBetData.apiError.errorCode).toEqual(3002);
+                    expect(endBetData.apiError.errorCode).toEqual("SB1900");
                     expect(endBetData.apiError.isPlaceBetFailed).toEqual(true);
                     done();
                 }

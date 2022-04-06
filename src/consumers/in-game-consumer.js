@@ -35,12 +35,12 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
     let ownBets = {},
       md5 = {};
     if (betTracks.roundId > 0) {
-      const cardsInfo = betTracks.canSwap
-        ? {}
-        : {
+      const cardsInfo = betTracks.isSwappedOrHold
+        ? {
             player: betTracks.player,
             combinationResult: betTracks.combinationResult,
-          };
+          }
+        : {};
 
       ownBets = {
         roundId: betTracks.roundId,
@@ -48,7 +48,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
         communityCards: betTracks.communityCards,
         totalAmount,
         ...cardsInfo,
-        hasSwappedOrHold: !betTracks.canSwap,
+        hasSwappedOrHold: betTracks.isSwappedOrHold,
       };
 
       const round = await this.roundsRepository.findOne({ id: betTracks.roundId }).exec();
