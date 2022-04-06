@@ -136,6 +136,8 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     const presetCards = this.getPresetCards(player);
     const { betTracks } = this.gameData.ingame[player.profile.name];
 
+    await this.checkUserStakeLevel(player, balance);
+
     betTracks.deck = generateDecks(presetCards);
     deal(betTracks);
 
