@@ -51,3 +51,9 @@ export const deal = ({ dealer, player, deck }) => {
     dealer.push(deck.shift());
   }
 };
+
+export const buildDeckOfCards = ({ dealer, player, community }) => [
+  ...player,
+  ...dealer,
+  ...community,
+];

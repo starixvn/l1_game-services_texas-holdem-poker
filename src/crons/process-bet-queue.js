@@ -1,11 +1,12 @@
-import { ProcessBetQueue as BaseProcessBetQueue } from '@nex3/nex3-game-base/crons';
-import { deal, generateDecks, reGenerateDecks } from '../helpers/deck-helper';
+import { Core } from 'sc-game-base';
+import { buildDeckOfCards, deal, generateDecks, reGenerateDecks } from '../helpers/deck-helper';
 import { getCombinationResult } from '../helpers/result-helper';
-import Translation from '@nex3/translation';
 import { helpers } from 'sc-common';
 import { actions, ranks } from '../helpers/constants';
+import { createHashMD5, encrypt, encryptObject, randomString } from '../helpers/crypto-helper';
+import { cardToString } from '../helpers/card';
 
-export default class ProcessBetQueue extends BaseProcessBetQueue {
+export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
   constructor({
     definition,
     gameData,
@@ -35,23 +36,30 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
     this.publisher = publisher;
     this.settleGameRoundConsumer = settleGameRoundConsumer;
   }
+
   async proceedBet(player, payload) {
     try {
       switch (payload.action) {
         case actions.deal:
-          await this.processDeal(player, payload.amount);
+          await this.processDeal(player, payload);
           break;
         case actions.call:
-          await this.processCall(player, payload.amount);
+          await this.processCall(player, payload);
           break;
         case actions.fold:
           await this.settleGameRoundConsumer.settleRound(player.profile.name, true);
           break;
         case actions.betTurn:
-          await this.processBetTurn(player, payload.amount);
+          await this.processBetTurn(player, payload);
           break;
         case actions.betRiver:
-          await this.processBetRiver(player, payload.amount);
+          await this.processBetRiver(player, payload);
+          break;
+        case actions.swap:
+          await this.processSwap(player);
+          break;
+        case actions.hold:
+          await this.processHold(player);
           break;
       }
     } catch (e) {
@@ -88,8 +96,9 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
     return presetCards;
   }
 
-  async processDeal(player, amount) {
+  async processDeal(player, payload) {
     const { betTracks } = this.gameData.ingame[player.profile.name];
+    const { amount } = payload;
     betTracks.player = [];
     betTracks.dealer = [];
     betTracks.communityCards = [];
@@ -97,6 +106,7 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
     betTracks.combinationResult = {};
     betTracks.bets = { ante: amount };
     betTracks.isDealing = true;
+    betTracks.isSwappedOrHold = false;
 
     this.gameData.roundId++;
     const roundId = this.gameData.roundId;
@@ -106,21 +116,28 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       gameId: this.definition.id,
       gameRoundId: roundId,
       choiceId: this.definition.choicesMapper[actions.deal],
+      freeBet: payload.freeBet,
+      clientSentTime: payload.time ?? new Date(),
     };
 
     const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
     const { response } = apiResult;
+
     if (apiResult.isOk) {
       await this.handleSuccessDeal(player, response, roundId);
     } else {
       this.handleFailPlaceBetResponse(player, response, actions.deal);
     }
+
     betTracks.isDealing = false;
   }
 
   async handleSuccessDeal(player, balance, roundId) {
     const presetCards = this.getPresetCards(player);
     const { betTracks } = this.gameData.ingame[player.profile.name];
+
+    await this.checkUserStakeLevel(player, balance);
+
     betTracks.deck = generateDecks(presetCards);
     deal(betTracks);
 
@@ -133,13 +150,12 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
     this.publisher.publishToUser(player.UID, {
       deal: {
         roundId: betTracks.roundId,
-        player: betTracks.player,
-        combinationResult: betTracks.combinationResult,
         totalAmount: betTracks.bets.ante,
         choices: betTracks.bets,
       },
       endBet: betTracks.bets.ante,
       user: balance,
+      md5: { key: betTracks.md5 },
     });
   }
 
@@ -162,14 +178,46 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
   async createRound(player, roundId) {
     const { betTracks } = this.gameData.ingame[player.profile.name];
     const { odds } = this.gameData.gameConfigs;
+
+    const generatedResult = {
+      player: betTracks.player,
+      dealer: betTracks.dealer,
+      community: this.definition.generateResult(betTracks.communityCards, betTracks.deck),
+      suffix: randomString(),
+    };
+
+    const md5Plaintext = this.createMD5Raw(generatedResult, roundId);
+    const md5 = createHashMD5(md5Plaintext);
+
+    betTracks.md5 = md5;
+    betTracks.resultKey = {
+      rawValue: md5Plaintext,
+      formatValue: { cards: buildDeckOfCards(generatedResult), suffix: generatedResult.suffix, roundId },
+    };
+    betTracks.generatedResult = generatedResult;
+
     return this.roundsRepository.create({
       id: roundId,
-      result: { dealer: betTracks.dealer, communityCards: [] },
+      result: { dealer: [], communityCards: [] },
       roundStartTime: new Date(),
       uid: player.UID,
       name: player.profile.name,
       odds,
+      exchangeRateId: this.gameData.exchangeRates.exId,
+      encryptedResult: encryptObject(generatedResult),
+      md5,
+      encryptedMd5: encrypt(md5Plaintext),
     });
+  }
+
+  createMD5Raw(generatedResult, roundId) {
+    const cardString = [
+      generatedResult.player.map(cardToString).join(' '),
+      generatedResult.dealer.map(cardToString).join(' '),
+      generatedResult.community.map(cardToString).join(' '),
+    ].join(', ');
+
+    return `{${cardString}}_{#${roundId}${generatedResult.suffix}}`;
   }
 
   async createBet(player) {
@@ -180,17 +228,20 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       name: player.profile.name,
       phien: betTracks.roundId,
       ante: betTracks.bets?.ante,
-      cards: betTracks.player,
+      cards: [],
       bet: betTracks.bets?.ante,
-      result: betTracks.combinationResult.player,
       time: new Date(),
       memberId: player.session?.memberId,
       siteId: player.session?.siteId,
+      currency: player.session?.currencyName,
+      partnerId: player.session?.partnerId,
     });
   }
 
-  async processCall(player, amount) {
+  async processCall(player, payload) {
     const { betTracks } = this.gameData.ingame[player.profile.name];
+    const { amount } = payload;
+
     betTracks.isDealing = true;
 
     const betInfo = {
@@ -198,25 +249,37 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
       gameId: this.definition.id,
       gameRoundId: betTracks.roundId,
       choiceId: this.definition.choicesMapper[actions.call],
+      freeBet: payload.freeBet,
+      clientSentTime: payload.time ?? new Date(),
     };
+
     const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
     const { response } = apiResult;
+
     if (apiResult.isOk) {
       await this.handleSuccessCall(player, amount, response);
     } else {
       this.handleFailPlaceBetResponse(player, response, actions.call);
     }
+
     betTracks.isDealing = false;
   }
 
   async handleSuccessCall(player, amount, balance) {
     this.updateBetTracksAfterCall(player.profile.name, amount);
+
+    await this.checkUserStakeLevel(player, balance);
     const { betTracks } = this.gameData.ingame[player.profile.name];
 
     await this.updateRoundWhenContinuesDealing(player.profile.name);
     await this.betsRepository.update(
       { phien: betTracks.roundId },
-      { $inc: { call: amount, bet: amount }, result: betTracks.combinationResult.player },
+      {
+        $inc: { call: amount, bet: amount },
+        cards: betTracks.player,
+        result: betTracks.combinationResult.player,
+        callTime: new Date(),
+      },
     );
 
     const call = {
@@ -229,19 +292,88 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
     this.publisher.publishToUser(player.UID, { endBet: amount, user: balance, call });
   }
 
+  async processHold(player) {
+    const { betTracks } = this.gameData.ingame[player.profile.name];
+    const generatedResult = betTracks.generatedResult;
+
+    betTracks.player = generatedResult.player;
+    betTracks.dealer = generatedResult.dealer;
+    betTracks.combinationResult.player = this.getCombinationResultWhenDeal(betTracks.player);
+    betTracks.isSwappedOrHold = true;
+
+    await this.betsRepository.update(
+      { phien: betTracks.roundId },
+      {
+        holdTime: new Date(),
+        cards: betTracks.player,
+        result: betTracks.combinationResult.player,
+      },
+    );
+    await this.roundsRepository.update(
+      { id: betTracks.roundId },
+      {
+        isSwappedOrHold: true,
+        result: { dealer: betTracks.dealer, communityCards: [] },
+      },
+    );
+
+    const hold = {
+      roundId: betTracks.roundId,
+      player: betTracks.player,
+      combinationResult: betTracks.combinationResult,
+    };
+
+    this.publisher.publishToUser(player.UID, { hold });
+  }
+
+  async processSwap(player) {
+    const playerName = player.profile.name;
+    const { betTracks } = this.gameData.ingame[playerName];
+    const generatedResult = betTracks.generatedResult;
+
+    betTracks.isSwappedOrHold = true;
+    betTracks.player = generatedResult.dealer;
+    betTracks.dealer = generatedResult.player;
+    betTracks.combinationResult.player = this.getCombinationResultWhenDeal(betTracks.player);
+
+    await this.betsRepository.update(
+      { phien: betTracks.roundId },
+      {
+        cards: betTracks.player,
+        result: betTracks.combinationResult.player,
+        swapTime: new Date(),
+      },
+    );
+
+    await this.roundsRepository.update(
+      { id: betTracks.roundId },
+      {
+        result: { dealer: betTracks.dealer, communityCards: [] },
+        isSwappedOrHold: true,
+      },
+    );
+
+    const swap = {
+      roundId: betTracks.roundId,
+      player: betTracks.player,
+      combinationResult: betTracks.combinationResult,
+    };
+
+    this.publisher.publishToUser(player.UID, { swap });
+  }
+
   updateBetTracksAfterCall(playerName, amount) {
     const { betTracks } = this.gameData.ingame[playerName];
+    const communityCards = betTracks.generatedResult.community;
 
     betTracks.bets.call = amount;
-    betTracks.communityCards.push(
-      betTracks.deck.shift(),
-      betTracks.deck.shift(),
-      betTracks.deck.shift(),
-    );
+
+    betTracks.communityCards = communityCards.slice(0, 3);
     this.updateCombinationPlayerResultInBetTracks(playerName);
   }
 
-  async processBetTurn(player, amount) {
+  async processBetTurn(player, payload) {
+    const { amount } = payload;
     if (amount > 0) {
       const { betTracks } = this.gameData.ingame[player.profile.name];
       betTracks.isDealing = true;
@@ -251,6 +383,8 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
         gameId: this.definition.id,
         gameRoundId: betTracks.roundId,
         choiceId: this.definition.choicesMapper.turn,
+        freeBet: payload.freeBet,
+        clientSentTime: payload.time ?? new Date(),
       };
       const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
       const { response } = apiResult;
@@ -267,12 +401,21 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
 
   async handleSuccessBetTurn(player, amount, balance) {
     this.updateBetTracksAfterBetTurn(player.profile.name, amount);
+
+    if (balance) {
+      await this.checkUserStakeLevel(player, balance);
+    }
+
     const { betTracks } = this.gameData.ingame[player.profile.name];
 
     await this.updateRoundWhenContinuesDealing(player.profile.name);
     await this.betsRepository.update(
       { phien: betTracks.roundId },
-      { $inc: { turn: amount, bet: amount }, result: betTracks.combinationResult.player },
+      {
+        $inc: { turn: amount, bet: amount },
+        result: betTracks.combinationResult.player,
+        turnTime: new Date(),
+      },
     );
 
     const turn = {
@@ -290,13 +433,16 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
 
   updateBetTracksAfterBetTurn(playerName, amount) {
     const { betTracks } = this.gameData.ingame[playerName];
+    const communityCards = betTracks.generatedResult.community;
 
     betTracks.bets.turn = amount;
-    betTracks.communityCards.push(betTracks.deck.shift());
+
+    betTracks.communityCards.push(communityCards[3]);
     this.updateCombinationPlayerResultInBetTracks(playerName);
   }
 
-  async processBetRiver(player, amount) {
+  async processBetRiver(player, payload) {
+    const { amount } = payload;
     if (amount > 0) {
       const { betTracks } = this.gameData.ingame[player.profile.name];
       betTracks.isDealing = true;
@@ -306,7 +452,10 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
         gameId: this.definition.id,
         gameRoundId: betTracks.roundId,
         choiceId: this.definition.choicesMapper.river,
+        freeBet: payload.freeBet,
+        clientSentTime: payload.time ?? new Date(),
       };
+
       const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
       const { response } = apiResult;
       if (apiResult.isOk) {
@@ -322,11 +471,18 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
 
   async handleSuccessBetRiver(player, amount, balance) {
     this.updateBetTracksAfterBetRiver(player.profile.name, amount);
+    if (balance) {
+      await this.checkUserStakeLevel(player, balance);
+    }
     const { betTracks } = this.gameData.ingame[player.profile.name];
 
     await this.betsRepository.update(
       { phien: betTracks.roundId },
-      { $inc: { river: amount, bet: amount }, result: betTracks.combinationResult.player },
+      {
+        $inc: { river: amount, bet: amount },
+        result: betTracks.combinationResult.player,
+        riverTime: new Date(),
+      },
     );
 
     const river = {
@@ -348,28 +504,31 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
 
   updateBetTracksAfterBetRiver(playerName, amount) {
     const { betTracks } = this.gameData.ingame[playerName];
+    const communityCards = betTracks.generatedResult.community;
 
     betTracks.bets.river = amount;
-    betTracks.communityCards.push(betTracks.deck.shift());
+    betTracks.communityCards.push(communityCards[4]);
 
     this.updateCombinationPlayerResultInBetTracks(playerName);
+
     const combinationDealerResult = getCombinationResult(
       betTracks.dealer.concat(betTracks.communityCards),
     );
+
     betTracks.combinationResult.dealer = combinationDealerResult;
   }
 
   updateCombinationPlayerResultInBetTracks(playerName) {
     const { betTracks } = this.gameData.ingame[playerName];
 
-    const combinationPlayerResult = getCombinationResult(
+    betTracks.combinationResult.player = getCombinationResult(
       betTracks.player.concat(betTracks.communityCards),
     );
-    betTracks.combinationResult.player = combinationPlayerResult;
   }
 
   async updateRoundWhenContinuesDealing(playerName) {
     const { betTracks } = this.gameData.ingame[playerName];
+
     await this.roundsRepository.update(
       { id: betTracks.roundId },
       { result: { dealer: betTracks.dealer, communityCards: betTracks.communityCards } },
@@ -377,12 +536,9 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
   }
 
   handleFailPlaceBetResponse(player, response, action) {
-    const translation = Translation.getInstance(player?.session?.language);
-    const insufficientNotice = translation.t(translation.keys.notEnoughMoney);
-    const cannotProcessBetNotice = translation.t(translation.keys.cannotProcessBet);
     const noticeMapping = {
-      inSufficientBalance: insufficientNotice,
-      cannotProcessBet: cannotProcessBetNotice,
+      inSufficientBalance: helpers.noticeHelper.notEnoughMoney,
+      cannotProcessBet: helpers.noticeHelper.placeBetNextRound,
       inSufficientScoin: helpers.noticeHelper.notEnoughScoin,
     };
 
@@ -392,5 +548,11 @@ export default class ProcessBetQueue extends BaseProcessBetQueue {
     );
 
     this.handleFailedBet(player, notice, { betChoice: action });
+  }
+
+  async checkUserStakeLevel(player, balance) {
+    if (player.profile.minBet !== balance.minBet || player.profile.maxBet !== balance.maxBet) {
+      await this.updateUserStakeLevel(player, balance.minBet, balance.maxBet);
+    }
   }
 }

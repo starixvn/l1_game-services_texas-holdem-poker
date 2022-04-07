@@ -20,4 +20,6 @@ export const actions = {
   checkTurn: 'checkTurn',
   betRiver: 'betRiver',
   checkRiver: 'checkRiver',
+  hold: 'hold',
+  swap: 'swap',
 };

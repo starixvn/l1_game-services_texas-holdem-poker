@@ -12,6 +12,11 @@ const Schema = new mongoose.Schema({
   uid: { type: String, required: true },
   name: { type: String, required: true },
   odds: { type: Object },
+  exchangeRateId: { type: Number, require: true },
+  md5: { type: String, require: true },
+  encryptedMd5: { type: Object, require: true },
+  encryptedResult: { type: Object },
+  isSwappedOrHold: { type: Boolean, default: false },
 });
 
 export default mongoose.model(modelName, Schema);

@@ -1,24 +1,37 @@
 variables:
-  PROJECT_NAME: l3-texas-holdem-poker-service
-  
+  SMOKE_PRODUCT_NAME: texasHoldem
+
 include:
-  - project: "ci/repos-ci/nex3_l3_texas_holdem_poker_service"
+  - project: "ci/repos-ci/pentagon_l1_texas_holdem_poker_service"
     ref: master
     file: "gitlab-ci.yml"
 
+.if-deploy-local: &if-deploy-local
+  if: '$CI_COMMIT_TAG =~ /local/'
+
+.if-deploy-sit: &if-deploy-sit
+  if: '$CI_COMMIT_TAG =~ /sit/'
+
+.if-deploy-uat: &if-deploy-uat
+  if: '$CI_COMMIT_TAG =~ /uat/'
+
+.if-deploy-prod: &if-deploy-prod
+  if: '$CI_COMMIT_TAG =~ /prod/'
+
 integration-tests:
   stage: test
+  needs: ['unit-test-js']
   tags:
     - docker
 
   services:
-    - name: mongo:4.4.8
+    - name: registry.nexdev.net:5050/docker/database/mongo:4.4.8
       alias: mongo
       
   image: registry.nexdev.net:5050/docker/node:14.15.1-slim
   before_script:
-    - cp ./src/configs/configs.IGT.json ./src/configs/configs.IGT.original.js
-    - cp ./src/configs/configs.IGT-CI.json ./src/configs/configs.IGT.json
+    - cp ./src/app-configs.js ./src/app-configs.original.js
+    - cp ./configs/app-configs.IGT.js ./src/app-configs.js
     - npm set registry http://npm.lumigame.com
     - yarn install
     - npm run test-:-integration-:-setup-test-data
@@ -26,6 +39,17 @@ integration-tests:
 
   script:
     - npm run test-:-integration-:-start-test
+
+  rules:
+    - <<: *if-deploy-local
+      when: never
+    - <<: *if-deploy-sit
+      when: never
+    - <<: *if-deploy-uat
+      when: never
+    - <<: *if-deploy-prod
+      when: never
+    - when: always
 
   artifacts:
     when: always
@@ -35,3 +59,10 @@ integration-tests:
       junit:
         - junit.xml
     expire_in: 1 day
+
+unit-test-js:
+ artifacts:
+   reports:
+     junit: coverage/*.xml
+     cobertura: coverage/cobertura-coverage.xml
+

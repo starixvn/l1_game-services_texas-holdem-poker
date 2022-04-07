@@ -1,11 +1,12 @@
 import cron from 'cron';
 import moment from 'moment';
 import { logger } from 'sc-common';
-import appConfigs from '../configs';
-import { GameCron as BaseGameCron } from '@nex3/nex3-game-base/crons';
-import { reGenerateDecks } from '../helpers/deck-helper';
+import appConfigs from '../app-configs';
+import { buildDeckOfCards, reGenerateDecks } from '../helpers/deck-helper';
+import { Core } from 'sc-game-base';
+import { decrypt, decryptObject } from '../helpers/crypto-helper';
 
-export default class GameCron extends BaseGameCron {
+export default class GameCron extends Core.Crons.BaseGameCron {
   constructor({
     definition,
     gameData,
@@ -18,6 +19,11 @@ export default class GameCron extends BaseGameCron {
     roundsRepository,
     archiveStatusesRepository,
     notificationRepository,
+    exchangeRatesRepository,
+    currencyGroupGamesRepository,
+    partnerConfigRepository,
+    currencyGroupRepository,
+    currencyRepository,
     betsRepository,
   }) {
     super({
@@ -32,6 +38,11 @@ export default class GameCron extends BaseGameCron {
       roundsRepository,
       archiveStatusesRepository,
       notificationRepository,
+      exchangeRatesRepository,
+      currencyGroupGamesRepository,
+      partnerConfigRepository,
+      currencyGroupRepository,
+      currencyRepository,
     });
     this.betsRepository = betsRepository;
   }
@@ -56,8 +67,13 @@ export default class GameCron extends BaseGameCron {
     if (lastRound) {
       this.gameData.roundId = lastRound.id;
     }
+    else {
+      this.gameData.roundId = await this.getLastArchiveRound() - 1;
+  }
 
     await this.initBetTracks();
+    await this.getSettingForNewRound();
+    await this.updateExchangeRates();
     job.start();
   }
 
@@ -73,6 +89,7 @@ export default class GameCron extends BaseGameCron {
           usedCards.push(...bet.cards);
         }
 
+        const generatedResult = decryptObject(round.encryptedResult);
         const newPlayer = {
           name: round.name,
           betTracks: {
@@ -83,8 +100,18 @@ export default class GameCron extends BaseGameCron {
             combinationResult: { player: { ...bet?.result } },
             player: bet?.cards,
             bets: { ante: bet?.ante, call: bet?.call, turn: bet?.turn },
-            dealer: [...round.result.dealer],
-            communityCards: [...round.result.communityCards],
+            dealer: [...(round?.result?.dealer || [])],
+            communityCards: [...(round?.result?.communityCards ?? [])],
+            isSwappedOrHold: round.isSwappedOrHold,
+            resultKey: {
+              rawValue: decrypt(round.encryptedMd5),
+              formatValue: {
+                cards: buildDeckOfCards(generatedResult),
+                suffix: generatedResult.suffix,
+                roundId: round.id
+              },
+            },
+            generatedResult,
           },
           betQueue: [],
         };

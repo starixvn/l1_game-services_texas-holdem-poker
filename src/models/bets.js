@@ -8,9 +8,19 @@ const schema = new mongoose.Schema({
   phien: { type: Number, default: 0 },
 
   ante: { type: Number, default: 0 },
+  anteOdds: { type: Number, default: 0 },
+
   call: { type: Number, default: 0 },
+  callOdds: { type: Number, default: 0 },
+  callTime: { type: Date },
+
   turn: { type: Number, default: 0 },
+  turnOdds: { type: Number, default: 0 },
+  turnTime: { type: Date },
+
   river: { type: Number, default: 0 },
+  riverOdds: { type: Number, default: 0 },
+  riverTime: { type: Date },
 
   isFold: { type: Boolean, default: false },
   cards: { type: Array, default: [] },
@@ -26,6 +36,12 @@ const schema = new mongoose.Schema({
   memberId: { type: Number },
   siteId: { type: String },
   freeBet: { type: Boolean, default: false },
+  currency: { type: String, require: true },
+  rate: { type: Number, require: true },
+  partnerId: { type: String, require: true },
+
+  holdTime: { type: Date },
+  swapTime: { type: Date },
 });
 
 const bets = mongoose.model(modelName, schema);

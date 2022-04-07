@@ -6,6 +6,7 @@ import SettleGameConsumer from './settle-game-consumer';
 import UserDisconnectConsumer from './user-disconnect-consumer';
 import UserBetRiverConsumer from './user-bet-river-consumer';
 import UserBetTurnConsumer from './user-bet-turn-consumer';
+import GetGameConfigsConsumer from "./get-game-configs-consumer";
 
 export {
   InGameConsumer,
@@ -16,4 +17,5 @@ export {
   UserBetRiverConsumer,
   SettleGameConsumer,
   UserDisconnectConsumer,
+  GetGameConfigsConsumer,
 };
