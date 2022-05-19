@@ -59,7 +59,10 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
       }
     }
 
-    const result = { dealer: betTracks.dealer, communityCards: betTracks.communityCards };
+    const result = {
+      dealer: betTracks.dealer,
+      communityCards: betTracks.isSwappedOrHold ? generatedResult.community : [],
+    };
 
     if (!fold) {
       round.settlementResult = betTracks.combinationResult.dealer;
@@ -75,7 +78,7 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
       roundId: betTracks.roundId,
       odds: round.odds,
       time: new Date(),
-      isAutoSettle
+      isAutoSettle,
     };
 
     await this.settleBets({ ...finish, playerName, playerUID: betTracks.uid }, fold);
@@ -91,6 +94,7 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
       bet.isFold = isFold;
       bet.betwin = betResult.totalWin;
       bet.thanhtoan = true;
+      bet.paid = true;
       bet.result = betResult.result;
       bet.settlementResult = betResult.settlementResult;
       bet.endTime = time;
@@ -109,7 +113,7 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
       this.publisher.publishToUser(playerUID, {
         finish: {
           settlementResult: betResult.settlementResult,
-          isAutoSettle
+          isAutoSettle,
         },
         md5: { key: betTracks.resultKey },
       });

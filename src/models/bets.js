@@ -42,6 +42,11 @@ const schema = new mongoose.Schema({
 
   holdTime: { type: Date },
   swapTime: { type: Date },
+
+  operatorId: { type: String, require: true },
+  playerId: { type: Number },
+  roundId: { type: Number, default: 0 },
+  paid: { type: Boolean, default: false },
 });
 
 const bets = mongoose.model(modelName, schema);

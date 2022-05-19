@@ -574,6 +574,11 @@ describe('Process bet queue test', () => {
         time: new Date(123456),
         memberId: player.session.memberId,
         siteId: player.session.siteId,
+        currency: undefined,
+        operatorId: undefined,
+        partnerId: undefined,
+        playerId: player.session.memberId,
+        roundId: betTracks.roundId,
       };
 
       // Act
@@ -1553,7 +1558,11 @@ describe('Process bet queue test', () => {
         await process.checkUserStakeLevel(player, balance);
 
         // Assert
-        expect(process.updateUserStakeLevel).toHaveBeenCalledWith(player, balance.minBet, balance.maxBet);
+        expect(process.updateUserStakeLevel).toHaveBeenCalledWith(
+          player,
+          balance.minBet,
+          balance.maxBet,
+        );
       });
     });
 
@@ -1569,7 +1578,11 @@ describe('Process bet queue test', () => {
         await process.checkUserStakeLevel(player, balance);
 
         // Assert
-        expect(process.updateUserStakeLevel).toHaveBeenCalledWith(player, balance.minBet, balance.maxBet);
+        expect(process.updateUserStakeLevel).toHaveBeenCalledWith(
+          player,
+          balance.minBet,
+          balance.maxBet,
+        );
       });
     });
   });

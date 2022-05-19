@@ -151,7 +151,7 @@ describe('SettleGameConsumer', () => {
     it('should save round correctly', async () => {
       // Arrange
       betTracks.communityCards = communityCards;
-      const result = { dealer: betTracks.dealer, communityCards: betTracks.communityCards };
+      const result = { dealer: betTracks.dealer, communityCards: [] };
 
       // Act
       await consumer.settleRound(playerName);
@@ -167,7 +167,12 @@ describe('SettleGameConsumer', () => {
     const foldTestCases = [{ fold: true }, { fold: false }];
     it.each(foldTestCases)('should call settle bet correctly.', async (fold) => {
       // Arrange
-      const finish = { isAutoSettle: false, roundId: betTracks.roundId, odds: round.odds, time: new Date(123456) };
+      const finish = {
+        isAutoSettle: false,
+        roundId: betTracks.roundId,
+        odds: round.odds,
+        time: new Date(123456),
+      };
 
       // Act
       await consumer.settleRound(playerName, fold);
