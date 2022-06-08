@@ -65,5 +65,5 @@ export default {
     },
     roundMaxDurationInMinutes: 5,
     roundResultSecretKey: 'vOVH6sdmpNWjRRIqCc7rdxs01lwHzfr3',
-    enableMsgpackParser: false,
+    enableMsgpackParser: true,
 };
