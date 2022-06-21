@@ -13,9 +13,16 @@ export default {
     placeBetTimeout: 4000,
     enabledApiLogs: true,
   },
+  authenticateSettings: {
+    url: 'http://l1_auth_api_local:5000',
+    id: 'game-services',
+    secret: 'gameservices@20luminet&',
+    requestTimeout: 10000,
+    useAuthenticate: false,
+    audiences: ['api', 'admin-api'],
+  },
   userServiceSettings: {
     url: 'http://localhost:8004/api',
-    requestTimeout: 10000,
   },
   socketOptions: {
     pingInterval: 60 * 1000,
@@ -38,9 +45,6 @@ export default {
     sentryUrl: '',
     logIdentifier: 'texas-holdem-poker',
     env: 'DEV',
-  },
-  authenticateSettings: {
-    audiences: ['api', 'admin-api'],
   },
   adminSecretKey: 'asWDEerfOIdgsdqRTFabvmgh',
   enableCorsWs: false,

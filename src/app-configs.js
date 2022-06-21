@@ -8,14 +8,21 @@ export default {
       id: 'game-server',
       secret: 'gameserver@20luminet&',
     },
-    useAuthenticate: true,
+    useAuthenticate: false,
     requestTimeout: 10000,
     placeBetTimeout: 4500,
     enableApiLogs: true,
   },
-  userServiceSettings: {
-    url: 'https://l1-proxy.lumigame.com/user',
+  authenticateSettings: {
+    url: 'http://auth.lumigame.com',
+    id: 'game-services',
+    secret: 'gameservices@20luminet&',
     requestTimeout: 10000,
+    useAuthenticate: false,
+    audiences: ['api', 'admin-api'],
+  },
+  userServiceSettings: {
+    url: 'http://127.0.0.1:5000',
   },
   socketOptions: {
     pingInterval: 60 * 1000,
@@ -27,7 +34,7 @@ export default {
   database: {
     url: 'mongodb://127.0.0.1:27017',
     options: {
-      dbName: 'minigame',
+      dbName: 'minigame2',
       useNewUrlParser: true,
       useUnifiedTopology: true,
       auto_reconnect: true,
@@ -37,9 +44,6 @@ export default {
     sentryUrl: 'https://13f39b8359404ed5aec23655e64ccf78@sentry.lumigame.com/2',
     logIdentifier: 'texas-holdem-poker',
     env: 'DEV',
-  },
-  authenticateSettings: {
-    audiences: ['api', 'admin-api'],
   },
   adminSecretKey: 'asWDEerfOIdgsdqRTFabvmgh',
   enableCorsWs: false,
