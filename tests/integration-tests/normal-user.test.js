@@ -1,9 +1,6 @@
 import { GameClientDriver, normalUser } from 'sc-game-service-integration-utils';
 import { socketOptions } from './stubs/test-data';
-import {
-  initUserSession,
-  JEST_ASSERT_WAITING_RESPONSE_TIMEOUT,
-} from './init-user-helper';
+import { initUserSession, JEST_ASSERT_WAITING_RESPONSE_TIMEOUT } from './init-user-helper';
 
 let gameClientDriver;
 
@@ -35,7 +32,8 @@ describe('Texas Holdem Service', () => {
       currency: '$US',
       name: 'NormalUser',
       rate: 1,
-      red: 20000,
+      red: 25000,
+      type: false,
     };
 
     // Act
