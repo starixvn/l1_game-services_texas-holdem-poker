@@ -59,9 +59,24 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
       }
     }
 
+    const communityCardsMapping = [
+      {
+        ifPassed: betTracks.isSwappedOrHold && fold,
+        communityCards: betTracks.communityCards,
+      },
+      {
+        ifPassed: betTracks.isSwappedOrHold && !fold,
+        communityCards: generatedResult.community,
+      },
+      {
+        ifPassed: true,
+        communityCards: [],
+      },
+    ];
+
     const result = {
       dealer: betTracks.dealer,
-      communityCards: betTracks.isSwappedOrHold ? generatedResult.community : [],
+      communityCards: communityCardsMapping.find((x) => x.ifPassed).communityCards,
     };
 
     if (!fold) {
