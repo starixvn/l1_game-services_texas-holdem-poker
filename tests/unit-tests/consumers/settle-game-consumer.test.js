@@ -151,7 +151,10 @@ describe('SettleGameConsumer', () => {
     it('should save round correctly', async () => {
       // Arrange
       betTracks.communityCards = communityCards;
-      const result = { dealer: betTracks.dealer, communityCards: [] };
+      const result = {
+        dealer: betTracks.dealer,
+        communityCards: [],
+      };
 
       // Act
       await consumer.settleRound(playerName);
