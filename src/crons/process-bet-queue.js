@@ -71,7 +71,8 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     const player = resultFromAdmin.player || [];
     const dealer = resultFromAdmin.dealer || [];
     const communityCards = resultFromAdmin.communityCards || [];
-    const unusedCards = reGenerateDecks(player.concat(dealer, communityCards));
+    const { randomMode } = this.gameData.gameConfigs;
+    const unusedCards = reGenerateDecks(randomMode, player.concat(dealer, communityCards));
     const cards = [];
     cards.push(player[0] || unusedCards.shift());
     cards.push(dealer[0] || unusedCards.shift());
@@ -138,7 +139,8 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
     await this.checkUserStakeLevel(player, balance);
 
-    betTracks.deck = generateDecks(presetCards);
+    const { randomMode } = this.gameData.gameConfigs;
+    betTracks.deck = generateDecks(randomMode, presetCards);
     deal(betTracks);
 
     const newRound = await this.createRound(player, roundId);

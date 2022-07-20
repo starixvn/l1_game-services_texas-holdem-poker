@@ -20,7 +20,7 @@ include:
 
 integration-tests:
   stage: test
-  needs: ['unit-test-js']
+  needs: []
   tags:
     - docker
 

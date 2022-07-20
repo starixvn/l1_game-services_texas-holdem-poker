@@ -35,7 +35,7 @@ describe('Game Cron test', () => {
             lean: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue(lastRound) }),
           }),
         };
-        game.gameData = { roundId: 0 };
+        game.gameData = { roundId: 0, gameConfigs: {} };
 
         // Act
         await game.start();
@@ -61,7 +61,7 @@ describe('Game Cron test', () => {
         };
         game.gameData = { roundId: 0 };
 
-        spyOn(game, "getLastArchiveRound").and.returnValue(10);
+        spyOn(game, 'getLastArchiveRound').and.returnValue(10);
         // Act
         await game.start();
 
@@ -97,7 +97,7 @@ describe('Game Cron test', () => {
       it('should set ingame', async () => {
         // Arrange
         const game = new GameCron({});
-        game.gameData = { ingame: {} };
+        game.gameData = { ingame: {}, gameConfigs: {} };
         game.roundsRepository = {
           find: jest.fn().mockReturnValue({
             lean: jest.fn().mockReturnValue({ exec: jest.fn().mockReturnValue([round]) }),

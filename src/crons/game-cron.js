@@ -66,10 +66,9 @@ export default class GameCron extends Core.Crons.BaseGameCron {
 
     if (lastRound) {
       this.gameData.roundId = lastRound.id;
+    } else {
+      this.gameData.roundId = (await this.getLastArchiveRound()) - 1;
     }
-    else {
-      this.gameData.roundId = await this.getLastArchiveRound() - 1;
-  }
 
     await this.initBetTracks();
     await this.getSettingForNewRound();
@@ -90,13 +89,15 @@ export default class GameCron extends Core.Crons.BaseGameCron {
         }
 
         const generatedResult = decryptObject(round.encryptedResult);
+        const { randomMode } = this.gameData.gameConfigs;
+
         const newPlayer = {
           name: round.name,
           betTracks: {
             roundId: round.id,
             roundStartTime: round.roundStartTime,
             uid: round.uid,
-            deck: reGenerateDecks(usedCards),
+            deck: reGenerateDecks(randomMode, usedCards),
             combinationResult: { player: { ...bet?.result } },
             player: bet?.cards,
             bets: { ante: bet?.ante, call: bet?.call, turn: bet?.turn },
@@ -108,7 +109,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
               formatValue: {
                 cards: buildDeckOfCards(generatedResult),
                 suffix: generatedResult.suffix,
-                roundId: round.id
+                roundId: round.id,
               },
             },
             generatedResult,

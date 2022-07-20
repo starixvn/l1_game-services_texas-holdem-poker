@@ -1,13 +1,43 @@
 import { reGenerateDecks, deal, generateDecks } from '../../../src/helpers/deck-helper';
 
+const chanceMock = { pickoneIndex: 0 };
+
+jest.mock('chance', () => {
+  return function () {
+    const orig = {
+      ...jest.requireActual('chance'),
+    };
+
+    return {
+      shuffle: (arr) => {
+        return new orig.Chance().shuffle(arr);
+      },
+      integer: (min, max) => {
+        return new orig.Chance().integer({ min, max });
+      },
+      pickone: (arr) => arr[chanceMock.pickoneIndex],
+    };
+  };
+});
+
 describe('DeckHelper', () => {
+  const testCases = [
+    { randomMode: 1, pickoneIndex: 0 },
+    { randomMode: 2, pickoneIndex: 0 },
+    { randomMode: 2, pickoneIndex: 1 },
+    { randomMode: 3, pickoneIndex: 0 },
+    { randomMode: 3, pickoneIndex: 1 },
+    { randomMode: 4, pickoneIndex: 0 },
+  ];
+
   describe('generateDecks', () => {
-    it('should return expected', () => {
+    it.each(testCases)('should return expected', (testCase) => {
       // Arrange
+      chanceMock.pickoneIndex = testCase.pickoneIndex;
       const presetCards = [{ rank: 1 }, { rank: 0 }];
 
       // Act
-      const actual = generateDecks(presetCards);
+      const actual = generateDecks(testCase.randomMode, presetCards);
 
       // Assert
       expect(actual.length).toBe(52);
@@ -17,12 +47,14 @@ describe('DeckHelper', () => {
   });
 
   describe('reGenerateDecks', () => {
+    const randomMode = 1;
+
     it('should return expected', () => {
       // Arrange
       const usedCards = [{ rank: 1 }, { rank: 0 }, { rank: 3 }, { rank: 0 }];
 
       // Act
-      const actual = reGenerateDecks(usedCards);
+      const actual = reGenerateDecks(randomMode, usedCards);
 
       // Assert
       expect(actual.length).toBe(48);
