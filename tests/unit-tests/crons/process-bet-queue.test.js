@@ -174,7 +174,8 @@ describe('Process bet queue test', () => {
     describe('when resultFromAdmin has value', () => {
       it('should return expected.', () => {
         // Arrange
-        const process = new ProcessBetQueue({});
+        const gameData = { gameConfigs: {} };
+        const process = new ProcessBetQueue({ gameData });
         const resultFromAdmin = {
           player: [{ rank: 1 }, { rank: 1 }],
           dealer: [{ rank: 2 }, { rank: 2 }],
@@ -199,7 +200,8 @@ describe('Process bet queue test', () => {
     describe('when resultFromAdmin empty', () => {
       it('should return expected.', () => {
         // Arrange
-        const process = new ProcessBetQueue({});
+        const gameData = { gameConfigs: {} };
+        const process = new ProcessBetQueue({ gameData });
         const unusedCards = [{ rank: 1 }, { rank: 1 }, { rank: 2 }, { rank: 2 }, { rank: 3 }];
         reGenerateDecks.mockReturnValue(unusedCards);
         const expected = [{ rank: 1 }, { rank: 1 }, { rank: 2 }, { rank: 2 }];
@@ -274,7 +276,11 @@ describe('Process bet queue test', () => {
     describe('when placeBet successfully', () => {
       it('should call handleSuccessDeal', async () => {
         const betTracks = {};
-        const gameData = { roundId: 1, ingame: { [player.profile.name]: { betTracks } } };
+        const gameData = {
+          roundId: 1,
+          ingame: { [player.profile.name]: { betTracks } },
+          gameConfigs: {},
+        };
         const process = new ProcessBetQueue({ definition, gameData });
         const amount = 50;
         const payload = { action: actions.deal, amount };
@@ -354,7 +360,7 @@ describe('Process bet queue test', () => {
         combinationResult: {},
         md5: '123',
       };
-      const gameData = { ingame: { [player.profile.name]: { betTracks } } };
+      const gameData = { ingame: { [player.profile.name]: { betTracks } }, gameConfigs: {} };
       const publisher = { publishToUser: jest.fn() };
       const process = new ProcessBetQueue({ gameData, publisher });
       process.getPresetCards = jest.fn().mockReturnValue([]);

@@ -1,12 +1,37 @@
 import Chance from 'chance';
 import _ from 'lodash';
-const chance = new Chance();
+import { shuffle as d3Shuffle } from 'd3-array';
+import { Random as RandomJS, MersenneTwister19937 } from 'random-js';
 import { cards } from './card';
 
-const shuffle = (array, times = 1) => {
-  if (times <= 0) {
-    return array;
-  } else {
+const random1 = (arr) => {
+  const chance = new Chance();
+  return chance.shuffle(chance.shuffle(chance.shuffle(arr)));
+};
+
+const random2 = (arr) => {
+  return d3Shuffle(d3Shuffle(d3Shuffle(arr)));
+};
+
+const random3 = (arr) => {
+  let result = arr;
+  const r = new RandomJS(MersenneTwister19937.autoSeed());
+
+  for (let i = 0; i < 3; i++) {
+    result = r.shuffle(arr);
+  }
+
+  return result;
+};
+
+const random4 = (arr) => {
+  return _.shuffle(_.shuffle(_.shuffle(arr)));
+};
+
+const random5 = (array) => {
+  const chance = new Chance();
+
+  for (let i = 0; i < 3; i++) {
     let lastElementIndex = array.length - 1;
 
     while (lastElementIndex) {
@@ -17,12 +42,18 @@ const shuffle = (array, times = 1) => {
       array[lastElementIndex] = array[randomIndex];
       array[randomIndex] = lastElement;
     }
-
-    return shuffle(array, times - 1);
   }
+
+  return array;
 };
 
-const generate = (exclusions) => {
+const randomModes = {
+  1: [random5],
+  2: [random1, random2],
+  3: [random3, random4],
+};
+
+const generate = (randomMode, exclusions) => {
   const baseDeck = [...cards];
 
   if (exclusions) {
@@ -32,17 +63,19 @@ const generate = (exclusions) => {
     });
   }
 
-  const times = chance.integer({ min: 3, max: 10 });
-  return shuffle(baseDeck, times);
+  const randomShuffles = randomModes[randomMode] || randomModes[1];
+  const chance = new Chance();
+  const shuffle = chance.pickone(randomShuffles);
+  return shuffle(baseDeck);
 };
 
-export const generateDecks = (presetCards) => {
-  const deck = generate(presetCards);
+export const generateDecks = (randomMode, presetCards) => {
+  const deck = generate(randomMode, presetCards);
   return presetCards.concat(deck);
 };
 
-export const reGenerateDecks = (usedCards) => {
-  return generate(usedCards);
+export const reGenerateDecks = (randomMode, usedCards) => {
+  return generate(randomMode, usedCards);
 };
 
 export const deal = ({ dealer, player, deck }) => {
