@@ -24,11 +24,11 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "nodemon": "^2.0.4",
     "d3-array": "^3.2.0",
     "lodash": "^4.17.19",
+    "nodemon": "^2.0.4",
     "random-js": "^2.1.0",
-    "sc-game-base": "3.0.6"
+    "sc-game-base": "3.0.7-beta.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
