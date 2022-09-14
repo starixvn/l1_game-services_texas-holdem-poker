@@ -22,7 +22,7 @@ export default {
     audiences: ['api', 'admin-api'],
   },
   userServiceSettings: {
-    url: 'http://127.0.0.1:5000',
+    url: 'http://l1_user_service_local_3:5000',
   },
   socketOptions: {
     pingInterval: 60 * 1000,
