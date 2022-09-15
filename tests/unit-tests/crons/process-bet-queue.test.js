@@ -570,6 +570,7 @@ describe('Process bet queue test', () => {
       const definition = {};
       const betsRepository = { create: jest.fn() };
       const process = new ProcessBetQueue({ definition, gameData, betsRepository });
+      process.calculateCurrencyRate = jest.fn().mockReturnValueOnce(1);
       const data = {
         uid: player.UID,
         name: player.profile.name,
@@ -585,6 +586,7 @@ describe('Process bet queue test', () => {
         partnerId: undefined,
         playerId: player.session.memberId,
         roundId: betTracks.roundId,
+        rate: 1,
       };
 
       // Act
