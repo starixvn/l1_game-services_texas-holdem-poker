@@ -39,7 +39,7 @@ export default {
       useUnifiedTopology: true,
       auto_reconnect: true,
     },
-    url: 'mongodb://lmn_backend:Sb%7B5r%40Xy4X%256%28%24%5Bt%252HsOxJ%7CQt9jdR%26t@10.99.99.56:27101/?replicaSet=L1_SabaAWS',
+    url: 'mongodb://lmn_backend:Sb%7B5r%40Xy4X%256%28%24%5Bt%252HsOxJ%7CQt9jdR%26t@10.99.99.56:27101/?replicaSet=L1_SabaAWS&appName=TexasHoldemPoker',
   },
   sentry: {
     sentryUrl: 'http://58fc00e79ab34a3bab04a79038760cb8@sentry.sabagame.com/8',

@@ -101,14 +101,13 @@ export default class SettleGameConsumer extends Core.BaseEventConsumers.SettleGa
   }
 
   async settleBets({ isAutoSettle, roundId, odds, time, playerName, playerUID }, isFold = false) {
-    const bet = await this.betsRepository.findOne({ phien: roundId, thanhtoan: false }).exec();
+    const bet = await this.betsRepository.findOne({ roundId, paid: false }).exec();
     if (bet) {
       const settleOdds = odds ?? this.gameData.gameConfigs.odds;
       const betResult = this.calculateBetResult(playerName, bet, settleOdds, isFold);
 
       bet.isFold = isFold;
       bet.betwin = betResult.totalWin;
-      bet.thanhtoan = true;
       bet.paid = true;
       bet.result = betResult.result;
       bet.settlementResult = betResult.settlementResult;

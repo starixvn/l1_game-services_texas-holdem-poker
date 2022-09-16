@@ -26,50 +26,54 @@ export default class HistoryQuery {
     const dealer = bet.isFold
       ? {}
       : {
-        cards: round.result.dealer,
-        combination: round.settlementResult?.cards,
-        handId: round.settlementResult?.id,
-      };
+          cards: round.result.dealer,
+          combination: round.settlementResult?.cards,
+          handId: round.settlementResult?.id,
+        };
 
-    let bets = [{
-      betChoice: "ante",
-      time: bet.time,
-      odds: bet.anteOdds ?? 0,
-      stake: bet.ante,
-      win: bet.settlementResult.ante
-    }];
+    let bets = [
+      {
+        betChoice: 'ante',
+        time: bet.time,
+        odds: bet.anteOdds ?? 0,
+        stake: bet.ante,
+        win: bet.settlementResult.ante,
+      },
+    ];
 
     if (bet.call > 0) {
-      bets = bets.concat([{
-        betChoice: "call",
-        time: bet.callTime,
-        odds: bet.callOdds ?? 0,
-        stake: bet.call,
-        win: bet.settlementResult.call
-      }]);
+      bets = bets.concat([
+        {
+          betChoice: 'call',
+          time: bet.callTime,
+          odds: bet.callOdds ?? 0,
+          stake: bet.call,
+          win: bet.settlementResult.call,
+        },
+      ]);
     }
 
     if (bet.turn > 0) {
       bets = bets.concat([
         {
-          betChoice: "turn",
+          betChoice: 'turn',
           time: bet.turnTime,
           odds: bet.turnOdds ?? 0,
           stake: bet.turn,
-          win: bet.settlementResult.turn
-        }
+          win: bet.settlementResult.turn,
+        },
       ]);
     }
 
     if (bet.river > 0) {
       bets = bets.concat([
         {
-          betChoice: "river",
+          betChoice: 'river',
           time: bet.riverTime,
           odds: bet.riverOdds ?? 0,
           stake: bet.river,
-          win: bet.settlementResult.river
-        }
+          win: bet.settlementResult.river,
+        },
       ]);
     }
 
@@ -91,15 +95,15 @@ export default class HistoryQuery {
       return {};
     }
 
-    const filter = { uid: player.UID, thanhtoan: true };
+    const filter = { uid: player.UID, paid: true };
     const numberOfSkippedBets = (page - 1) * pageSize;
     const total = await this.betsRepository.countDocuments(filter).exec();
     const betProjection = {
       _id: false,
       uid: false,
-      thanhtoan: false,
+      paid: false,
       siteId: false,
-      memberId: false,
+      playerId: false,
       __v: false,
       __archive: false,
     };
@@ -116,7 +120,7 @@ export default class HistoryQuery {
     if (bets && bets.length > 0) {
       betLogs = await Promise.all(
         bets.map(async (bet) => {
-          const round = await this.roundQuery.getOne(bet.phien, { _id: false });
+          const round = await this.roundQuery.getOne(bet.roundId, { _id: false });
           return {
             ...this.convertBet(bet),
             roundId: round.id,
@@ -137,11 +141,11 @@ export default class HistoryQuery {
     }
 
     const bet = await this.betsRepository
-      .findOne({ uid: player.UID, thanhtoan: true, phien: roundId })
+      .findOne({ uid: player.UID, paid: true, roundId })
       .lean()
       .exec();
     if (bet) {
-      const round = await this.roundQuery.getOne(bet.phien, { _id: false });
+      const round = await this.roundQuery.getOne(bet.roundId, { _id: false });
       return { ticketDetail: { ...this.convertTicketDetail(bet, round) } };
     } else {
       return {};

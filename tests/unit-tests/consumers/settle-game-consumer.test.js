@@ -213,7 +213,7 @@ describe('SettleGameConsumer', () => {
         await consumer.settleBets({ roundId: 1 });
 
         // Assert
-        expect(betsRepository.findOne).toHaveBeenCalledWith({ phien: 1, thanhtoan: false });
+        expect(betsRepository.findOne).toHaveBeenCalledWith({ roundId: 1, paid: false });
         expect(consumer.calculateBetResult).not.toHaveBeenCalled();
       });
     });
@@ -251,7 +251,7 @@ describe('SettleGameConsumer', () => {
         // Assert
         expect(bet.isFold).toBeFalse();
         expect(bet.betwin).toBe(betResult.totalWin);
-        expect(bet.thanhtoan).toBeTrue();
+        expect(bet.paid).toBeTrue();
         expect(bet.result).toStrictEqual(betResult.result);
         expect(bet.settlementResult).toStrictEqual(betResult.settlementResult);
         expect(bet.endTime).toEqual(finish.time);
@@ -310,7 +310,7 @@ describe('SettleGameConsumer', () => {
         // Assert
         expect(bet.isFold).toBeFalse();
         expect(bet.betwin).toBe(betResult.totalWin);
-        expect(bet.thanhtoan).toBeTrue();
+        expect(bet.paid).toBeTrue();
         expect(bet.result).toStrictEqual(betResult.result);
         expect(bet.settlementResult).toStrictEqual(betResult.settlementResult);
         expect(bet.endTime).toEqual(finish.time);

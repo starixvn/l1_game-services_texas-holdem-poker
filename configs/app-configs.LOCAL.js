@@ -33,7 +33,7 @@ export default {
   },
   enabledLogs: true,
   database: {
-    url: 'mongodb://lmn_backend:LmnBackend@10.10.50.13:27101/?replicaSet=L1Local',
+    url: 'mongodb://lmn_backend:LmnBackend@10.10.50.13:27101/?replicaSet=L1Local&appName=TexasHoldemPoker',
     options: {
       dbName: 'minigame',
       useNewUrlParser: true,
