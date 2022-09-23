@@ -10,19 +10,19 @@ export default {
     },
     useAuthenticate: true,
     requestTimeout: 10000,
-    placeBetTimeout: 4500,
+    placeBetTimeout: 4000,
     enabledApiLogs: true,
   },
-  mainServerApiSettings: {
-    url: 'http://l1_game_server_local_3:5000/api',
-    auth: {
-      url: 'http://l1_auth_api_local_3:5000',
-      id: 'game-services',
-      secret: 'gameservices@20luminet&',
-    },
+  authenticateSettings: {
+    url: 'http://auth.lumigame.com',
+    id: 'game-services',
+    secret: 'gameservices@20luminet&',
     requestTimeout: 10000,
-    placeBetTimeout: 4500,
-    useAuthenticate: true,
+    useAuthenticate: false,
+    audiences: ['api', 'admin-api'],
+  },
+  userServiceSettings: {
+    url: 'http://127.0.0.1:5000',
   },
   socketOptions: {
     pingInterval: 60 * 1000,
@@ -45,9 +45,6 @@ export default {
     sentryUrl: 'https://13f39b8359404ed5aec23655e64ccf78@sentry.lumigame.com/2',
     logIdentifier: 'texas-holdem-poker',
     env: 'LOCAL_3',
-  },
-  authenticateSettings: {
-    audiences: ['api', 'admin-api'],
   },
   adminSecretKey: 'asWDEerfOIdgsdqRTFabvmgh',
   enableCorsWs: true,
