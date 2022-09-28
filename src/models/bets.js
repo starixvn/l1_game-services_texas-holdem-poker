@@ -33,13 +33,13 @@ const schema = new mongoose.Schema({
 
   siteId: { type: String },
   freeBet: { type: Boolean, default: false },
-  currency: { type: String, require: true },
-  rate: { type: Number, require: true },
+  currency: { type: String, required: true },
+  rate: { type: Number, required: true },
 
   holdTime: { type: Date },
   swapTime: { type: Date },
 
-  operatorId: { type: String, require: true },
+  operatorId: { type: String, required: true },
   playerId: { type: Number },
   roundId: { type: Number, default: 0 },
   paid: { type: Boolean, default: false },

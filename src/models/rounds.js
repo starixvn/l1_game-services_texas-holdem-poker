@@ -12,9 +12,9 @@ const Schema = new mongoose.Schema({
   uid: { type: String, required: true },
   name: { type: String, required: true },
   odds: { type: Object },
-  exchangeRateId: { type: Number, require: true },
-  md5: { type: String, require: true },
-  encryptedMd5: { type: Object, require: true },
+  exchangeRateId: { type: Number, required: true },
+  md5: { type: String, required: true },
+  encryptedMd5: { type: Object, required: true },
   encryptedResult: { type: Object },
   isSwappedOrHold: { type: Boolean, default: false },
 });
