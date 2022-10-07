@@ -555,7 +555,7 @@ describe('Process bet queue test', () => {
       const player = {
         UID: 1,
         profile: { name: 'profile' },
-        session: { memberId: 123, siteId: 2 },
+        session: { playerId: 123, siteId: 2 },
       };
       const betTracks = {
         roundId: 1,
@@ -574,17 +574,14 @@ describe('Process bet queue test', () => {
       const data = {
         uid: player.UID,
         name: player.profile.name,
-        phien: betTracks.roundId,
         ante: betTracks.bets.ante,
         cards: [],
         bet: betTracks.bets.ante,
         time: new Date(123456),
-        memberId: player.session.memberId,
         siteId: player.session.siteId,
         currency: undefined,
         operatorId: undefined,
-        partnerId: undefined,
-        playerId: player.session.memberId,
+        playerId: player.session.playerId,
         roundId: betTracks.roundId,
         rate: 1,
       };
@@ -671,7 +668,7 @@ describe('Process bet queue test', () => {
   describe('handleSuccessCall', () => {
     it('should run correctly', async () => {
       // Arrange
-      const player = { profile: { name: 'a' }, session: { partnerId: '1W' } };
+      const player = { profile: { name: 'a' }, session: { operatorId: '1W' } };
       const betTracks = {
         roundId: 1,
         combinationResult: { player: { id: 3 } },
@@ -705,7 +702,7 @@ describe('Process bet queue test', () => {
       expect(process.updateBetTracksAfterCall).toHaveBeenCalledWith(player.profile.name, 100);
       expect(process.updateRoundWhenContinuesDealing).toHaveBeenCalledWith(player.profile.name);
       expect(betsRepository.update).toHaveBeenCalledWith(
-        { phien: betTracks.roundId },
+        { roundId: betTracks.roundId },
         {
           $inc: { call: 100, bet: 100 },
           result: betTracks.combinationResult.player,
@@ -723,7 +720,7 @@ describe('Process bet queue test', () => {
   describe('updateBetTracksAfterCall', () => {
     it('should run correctly', () => {
       // Arrange
-      const player = { profile: { name: 'a' }, session: { partnerId: '1W' } };
+      const player = { profile: { name: 'a' }, session: { operatorId: '1W' } };
       const communityCardsGenerated = [
         { rank: 3 },
         { rank: 3 },
@@ -876,7 +873,7 @@ describe('Process bet queue test', () => {
         expect(process.updateBetTracksAfterBetTurn).toHaveBeenCalledWith(player.profile.name, 10);
         expect(process.updateRoundWhenContinuesDealing).toHaveBeenCalledWith(player.profile.name);
         expect(process.betsRepository.update).toHaveBeenCalledWith(
-          { phien: betTracks.roundId },
+          { roundId: betTracks.roundId },
           {
             $inc: { turn: 10, bet: 10 },
             result: betTracks.combinationResult.player,
@@ -906,7 +903,7 @@ describe('Process bet queue test', () => {
         expect(process.updateBetTracksAfterBetTurn).toHaveBeenCalledWith(player.profile.name, 0);
         expect(process.updateRoundWhenContinuesDealing).toHaveBeenCalledWith(player.profile.name);
         expect(process.betsRepository.update).toHaveBeenCalledWith(
-          { phien: betTracks.roundId },
+          { roundId: betTracks.roundId },
           {
             $inc: { turn: 0, bet: 0 },
             result: betTracks.combinationResult.player,
@@ -1073,7 +1070,7 @@ describe('Process bet queue test', () => {
         // Assert
         expect(process.updateBetTracksAfterBetRiver).toHaveBeenCalledWith(player.profile.name, 10);
         expect(process.betsRepository.update).toHaveBeenCalledWith(
-          { phien: betTracks.roundId },
+          { roundId: betTracks.roundId },
           {
             $inc: { river: 10, bet: 10 },
             result: betTracks.combinationResult.player,
@@ -1105,7 +1102,7 @@ describe('Process bet queue test', () => {
         // Assert
         expect(process.updateBetTracksAfterBetRiver).toHaveBeenCalledWith(player.profile.name, 0);
         expect(process.betsRepository.update).toHaveBeenCalledWith(
-          { phien: betTracks.roundId },
+          { roundId: betTracks.roundId },
           {
             $inc: { river: 0, bet: 0 },
             result: betTracks.combinationResult.player,
@@ -1300,7 +1297,7 @@ describe('Process bet queue test', () => {
       it('should add some fields to a bet record', async () => {
         // Arrange
         const filter = {
-          phien: 3,
+          roundId: 3,
         };
         const updater = {
           holdTime: mockDate,
@@ -1491,7 +1488,7 @@ describe('Process bet queue test', () => {
 
       it('should update a bet record', async () => {
         // Arrange
-        const filter = { phien: 3 };
+        const filter = { roundId: 3 };
         const updater = {
           cards: [
             { rank: 3, suit: 0 },

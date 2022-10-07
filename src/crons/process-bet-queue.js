@@ -232,17 +232,14 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     await this.betsRepository.create({
       uid: player.UID,
       name: player.profile.name,
-      phien: betTracks.roundId,
       ante: betTracks.bets?.ante,
       cards: [],
       bet: betTracks.bets?.ante,
       time: new Date(),
-      memberId: player.session?.memberId,
       siteId: player.session?.siteId,
       currency: player.session?.currencyName,
-      partnerId: player.session?.partnerId,
-      operatorId: player.session?.partnerId,
-      playerId: player.session?.memberId,
+      operatorId: player.session?.operatorId,
+      playerId: player.session?.playerId,
       roundId: betTracks.roundId,
       rate: this.calculateCurrencyRate(player.session),
     });
@@ -283,7 +280,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
     await this.updateRoundWhenContinuesDealing(player.profile.name);
     await this.betsRepository.update(
-      { phien: betTracks.roundId },
+      { roundId: betTracks.roundId },
       {
         $inc: { call: amount, bet: amount },
         cards: betTracks.player,
@@ -312,7 +309,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     betTracks.isSwappedOrHold = true;
 
     await this.betsRepository.update(
-      { phien: betTracks.roundId },
+      { roundId: betTracks.roundId },
       {
         holdTime: new Date(),
         cards: betTracks.player,
@@ -347,7 +344,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     betTracks.combinationResult.player = this.getCombinationResultWhenDeal(betTracks.player);
 
     await this.betsRepository.update(
-      { phien: betTracks.roundId },
+      { roundId: betTracks.roundId },
       {
         cards: betTracks.player,
         result: betTracks.combinationResult.player,
@@ -420,7 +417,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
     await this.updateRoundWhenContinuesDealing(player.profile.name);
     await this.betsRepository.update(
-      { phien: betTracks.roundId },
+      { roundId: betTracks.roundId },
       {
         $inc: { turn: amount, bet: amount },
         result: betTracks.combinationResult.player,
@@ -487,7 +484,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     const { betTracks } = this.gameData.ingame[player.profile.name];
 
     await this.betsRepository.update(
-      { phien: betTracks.roundId },
+      { roundId: betTracks.roundId },
       {
         $inc: { river: amount, bet: amount },
         result: betTracks.combinationResult.player,

@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const modelName = 'TexasHoldemPoker_phien';
 
 const Schema = new mongoose.Schema({
-  id: { type: Number, default: 0 },
+  id: { type: Number, default: 0, required: true },
   result: { type: Object },
   settlementResult: { type: Object },
   roundStartTime: { type: Date },
@@ -12,9 +12,9 @@ const Schema = new mongoose.Schema({
   uid: { type: String, required: true },
   name: { type: String, required: true },
   odds: { type: Object },
-  exchangeRateId: { type: Number, require: true },
-  md5: { type: String, require: true },
-  encryptedMd5: { type: Object, require: true },
+  exchangeRateId: { type: Number, required: true },
+  md5: { type: String, required: true },
+  encryptedMd5: { type: Object, required: true },
   encryptedResult: { type: Object },
   isSwappedOrHold: { type: Boolean, default: false },
 });

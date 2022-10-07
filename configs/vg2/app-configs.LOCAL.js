@@ -2,8 +2,8 @@ export default {
   hostingPort: 5000,
   apiSettings: {
     enabledApi: true,
-    apiUrl: 'http://l1_game_api_local:5000',
-    authUrl: 'http://l1_auth_api_local:5000',
+    apiUrl: 'http://l2_game_api_local:5000',
+    authUrl: 'http://l2_auth_api_local:5000',
     client: {
       id: 'game-server',
       secret: 'gameserver@20luminet&',
@@ -14,7 +14,7 @@ export default {
     enabledApiLogs: true,
   },
   authenticateSettings: {
-    url: 'http://l1_auth_api_local:5000',
+    url: 'http://l2_auth_api_local:5000',
     id: 'game-services',
     secret: 'gameservices@20luminet&',
     requestTimeout: 10000,
@@ -22,7 +22,7 @@ export default {
     audiences: ['api', 'admin-api'],
   },
   userServiceSettings: {
-    url: 'http://l1_user_service_local:5000',
+    url: 'http://l2_user_service_local:5000',
   },
   socketOptions: {
     pingInterval: 60 * 1000,
@@ -33,7 +33,7 @@ export default {
   },
   enabledLogs: true,
   database: {
-    url: 'mongodb://lmn_backend:LmnBackend@10.10.50.13:27101/?replicaSet=L1Local',
+    url: 'mongodb://lmn_backend:LmnBackend@10.10.50.13:37101/?replicaSet=L2Local&appName=TexasHoldemPoker',
     options: {
       dbName: 'minigame',
       useNewUrlParser: true,
@@ -42,7 +42,7 @@ export default {
     },
   },
   sentry: {
-    sentryUrl: 'https://13f39b8359404ed5aec23655e64ccf78@sentry.lumigame.com/2',
+    sentryUrl: 'https://acb36eb835d948d68c1aad9873754d51@sentry.lumigame.com/27',
     logIdentifier: 'texas-holdem-poker',
     env: 'LOCAL',
   },
@@ -55,13 +55,13 @@ export default {
     'http://localhost:3000',
     'https://games.lumigame.com',
     'https://admin.lumigame.com',
-    'https://l1-m.lumigame.com',
+    'https://l2-m.lumigame.com',
   ],
   metrics: {
     enable: true,
     secretKey: '6c1f0f28-70f2-46ae-b031-22624a6cd8df',
   },
-  roundMaxDurationInMinutes: 3,
+  roundMaxDurationInMinutes: 5,
   roundResultSecretKey: 'vOVH6sdmpNWjRRIqCc7rdxs01lwHzfr3',
   enableMsgpackParser: false,
 };

@@ -2,19 +2,19 @@ export default {
   hostingPort: 5000,
   apiSettings: {
     enabledApi: true,
-    apiUrl: 'http://l1_game_api_AWS:5000',
-    authUrl: 'http://l1_auth_api_AWS:5000',
+    apiUrl: 'http://l2_game_api_sit:5000',
+    authUrl: 'http://l2_auth_api_sit:5000',
     client: {
       id: 'game-server',
       secret: 'gameserver@20luminet&',
     },
     useAuthenticate: true,
-    placeBetTimeout: 4500,
-    requestTimeout: 10000, // 10s
+    requestTimeout: 10000,
+    placeBetTimeout: 4000,
     enabledApiLogs: true,
   },
   authenticateSettings: {
-    url: 'http://l1_auth_api_AWS:5000',
+    url: 'http://l2_auth_api_sit:5000',
     id: 'game-services',
     secret: 'gameservices@20luminet&',
     requestTimeout: 10000,
@@ -22,7 +22,7 @@ export default {
     audiences: ['api', 'admin-api'],
   },
   userServiceSettings: {
-    url: 'http://localhost:8004/api',
+    url: 'http://l2_user_service_sit:5000',
   },
   socketOptions: {
     pingInterval: 60 * 1000,
@@ -33,27 +33,33 @@ export default {
   },
   enabledLogs: true,
   database: {
+    url: 'mongodb://lmn_backend:LmnBackend%40517@10.99.99.187:37301/?replicaSet=SabaL2SIT&appName=TexasHoldemPoker',
     options: {
       dbName: 'minigame',
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      auto_reconnect: true,
     },
-    url: 'mongodb://lmn_backend:Sb%7B5r%40Xy4X%256%28%24%5Bt%252HsOxJ%7CQt9jdR%26t@10.99.99.56:27101/?replicaSet=L1_SabaAWS',
   },
   sentry: {
-    sentryUrl: 'http://58fc00e79ab34a3bab04a79038760cb8@sentry.sabagame.com/8',
+    sentryUrl: 'http://8ac47fca6d3e4a41908896a64ef201ac@10.2.190.51:9009/53',
     logIdentifier: 'texas-holdem-poker',
-    env: 'AWS',
+    env: 'SIT',
   },
-  adminSecretKey: 'asWDEer4yGdgsdqR4uqmKQZgh',
+  adminSecretKey: 'asWDEerfOIdgsdqRTFabvmgh',
   enableCorsWs: true,
-  corsUrls: ['https://sc1-games.sportsfun.app', 'https://sc1-adm.sportsfun.app'],
+  corsUrls: [
+    'http://l2sit.sgamesuat.com',
+    'https://l2sit.sgamesuat.com',
+    'http://l2sitadm.sgamesuat.com',
+    'https://l2sitadm.sgamesuat.com',
+    'http://l2sitm.sgamesuat.com',
+    'https://l2sitm.sgamesuat.com',
+  ],
   metrics: {
     enable: true,
     secretKey: '6c1f0f28-70f2-46ae-b031-22624a6cd8df',
   },
-  roundMaxDurationInMinutes: 1440,
-  roundResultSecretKey: '8DLvuetP24JZgn5HQYWTNL9s87JFaHe9',
-  enableMsgpackParser: false,
+  roundMaxDurationInMinutes: 10,
+  roundResultSecretKey: 'vOVH6sdmpNWjRRIqCc7rdxs01lwHzfr3',
+  enableMsgpackParser: true,
 };
