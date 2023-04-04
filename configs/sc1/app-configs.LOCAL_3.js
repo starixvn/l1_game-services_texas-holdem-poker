@@ -14,11 +14,11 @@ export default {
     enabledApiLogs: true,
   },
   authenticateSettings: {
-    url: 'http://auth.lumigame.com',
+    url: 'http://l1_auth_api_local_3:5000',
     id: 'game-services',
     secret: 'gameservices@20luminet&',
     requestTimeout: 10000,
-    useAuthenticate: false,
+    useAuthenticate: true,
     audiences: ['api', 'admin-api'],
   },
   userServiceSettings: {
