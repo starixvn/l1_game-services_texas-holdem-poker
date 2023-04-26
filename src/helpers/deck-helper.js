@@ -47,7 +47,7 @@ const random5 = (array) => {
   return array;
 };
 
-const randomModes = {
+export const randomModes = {
   1: [random5],
   2: [random1, random2],
   3: [random3, random4],
