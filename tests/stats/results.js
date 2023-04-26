@@ -1,107 +1,142 @@
-import { generateDecks, deal } from '../../src/helpers/deck-helper';
+import { generateDecks, reGenerateDecks } from '../../src/helpers/deck-helper';
+import { getCombinationResult, compareCombination } from '../../src/helpers/result-helper';
 
-import {
-  generateResult,
-  getCombinationResult,
-  compareCombination,
-} from '../../src/helpers/result-helper';
+export function generateResult(randomMode) {
+  const result = {
+    player: [],
+    dealer: [],
+    community: [],
+  };
+  const deck1 = generateDecks(randomMode, []);
 
-const streakNumber = 4;
-const longestStreak = 4;
-function initStreaks() {
+  result.player.push(deck1.shift());
+  result.dealer.push(deck1.shift());
+  result.player.push(deck1.shift());
+  result.dealer.push(deck1.shift());
+
+  const deck2 = reGenerateDecks(randomMode, result.player.concat(result.dealer));
+
+  result.community = [deck2[0], deck2[1], deck2[2], deck2[3], deck2[4]];
+
   return {
-    total: 0,
-    dealer: { count: 0, ratio: 0 },
-    player: { count: 0, ratio: 0 },
-    tie: { count: 0, ratio: 0 },
+    playerCard: result.player,
+    dealerCard: result.dealer,
+    communityCard: result.community,
+    player: getCombinationResult(result.player.concat(result.community)),
+    dealer: getCombinationResult(result.dealer.concat(result.community)),
   };
 }
 
-function settleWin({ winName, loseNames }, occurrences, streaks, totalRounds) {
-  occurrences[winName].count++;
-  loseNames.forEach((n) => {
-    occurrences[n].count = 0;
-    occurrences[n].ratio = 0;
-  });
+export function getSettlementResult(result) {
+  const combinationDealerResult = compareCombination(result.player, result.dealer);
 
-  if (occurrences[winName].count >= streakNumber) {
-    streaks.total++;
-    streaks[winName].count++;
-    streaks[winName].ratio = streaks[winName].count / totalRounds;
-  }
-
-  if (occurrences[winName].count >= longestStreak) {
-    occurrences[winName].count = 0;
-    occurrences[winName].ratio = 0;
-  }
+  return {
+    dealer: combinationDealerResult > 0,
+    player: combinationDealerResult < 0,
+    tie: combinationDealerResult == 0,
+  };
 }
 
-function run(randomMode) {
-  const totalRounds = 100_000;
-  const stats = { dealer: {}, player: {} };
-  for (let i = 1; i < 11; i++) {
-    stats.dealer[i] = { id: i, count: 0, ratio: 0 };
-    stats.player[i] = { id: i, count: 0, ratio: 0 };
-  }
+export function getCardIndex(rank, suit) {
+  return rank * 4 + suit;
+}
 
-  const streaks = initStreaks();
-  const occurrences = initStreaks();
+function run() {
+  const totalRounds = 100_000;
+  const streaks = {
+    dealer: {},
+    player: {},
+  };
+
+  const streakNumber = 4;
+  const longestStreak = 4;
+  let occurrences = 0;
+  let prev = 'dealer';
+  const stats = {
+    streaks: { total: 0, dealer: 0, player: 0 },
+  };
+
+  const combinationStats = {
+    player: {},
+    dealer: {},
+  };
+
+  const cardStat = {};
+
+  const randomMode = 3;
 
   for (let index = 0; index < totalRounds; index++) {
-    const betTracks = { deck: generateDecks(randomMode, []), player: [], dealer: [] };
-    deal(betTracks);
+    const result = generateResult(randomMode);
 
-    const communityCards = [];
-    const communityCardsGenerated = generateResult(communityCards, betTracks.deck);
+    const settlement = getSettlementResult(result);
 
-    const dealer = getCombinationResult([...betTracks.dealer, ...communityCardsGenerated]);
-    const player = getCombinationResult([...betTracks.player, ...communityCardsGenerated]);
-    const settleResult = compareCombination(dealer, player);
+    combinationStats.player[result.player.id] = combinationStats.player[result.player.id] ?? {
+      count: 0,
+      ratio: 0,
+    };
+    combinationStats.dealer[result.dealer.id] = combinationStats.dealer[result.dealer.id] ?? {
+      count: 0,
+      ratio: 0,
+    };
 
-    stats.dealer[dealer.id].count++;
-    stats.dealer[dealer.id].ratio = stats.dealer[dealer.id].count / totalRounds;
-    stats.player[player.id].count++;
-    stats.player[player.id].ratio = stats.player[player.id].count / totalRounds;
+    combinationStats.player[result.player.id].count++;
+    combinationStats.dealer[result.dealer.id].count++;
+    combinationStats.player[result.player.id].ratio =
+      combinationStats.player[result.player.id].count / totalRounds;
+    combinationStats.dealer[result.dealer.id].ratio =
+      combinationStats.dealer[result.dealer.id].count / totalRounds;
 
-    switch (settleResult) {
-      case 1:
-        settleWin(
-          { winName: 'dealer', loseNames: ['player', 'tie'] },
-          occurrences,
-          streaks,
-          totalRounds,
-        );
-        break;
-      case -1:
-        settleWin(
-          { winName: 'player', loseNames: ['dealer', 'tie'] },
-          occurrences,
-          streaks,
-          totalRounds,
-        );
-        break;
-      default:
-        settleWin(
-          { winName: 'tie', loseNames: ['dealer', 'player'] },
-          occurrences,
-          streaks,
-          totalRounds,
-        );
-        break;
+    const allCards = result.playerCard.concat(result.dealerCard, result.communityCard);
+
+    allCards.forEach(({ rank, suit }) => {
+      const cardIndex = getCardIndex(rank, suit);
+
+      cardStat[cardIndex] = cardStat[cardIndex] ?? {
+        count: 0,
+        ratio: 0,
+      };
+
+      cardStat[cardIndex].count++;
+      cardStat[cardIndex].ratio = cardStat[cardIndex].count / (totalRounds * 9);
+    });
+
+    if (settlement[prev]) {
+      occurrences++;
+    } else {
+      if (occurrences >= streakNumber) {
+        stats.streaks.total++;
+        stats.streaks[prev]++;
+
+        if (occurrences >= longestStreak) {
+          streaks[prev][occurrences] = streaks[prev][occurrences] ?? 0;
+          streaks[prev][occurrences]++;
+        }
+      }
+
+      prev = settlement.dealer ? 'dealer' : 'player';
+      occurrences = 1;
     }
+
+    Object.keys(settlement).reduce((choiceResults, choice) => {
+      stats[choice] = stats[choice] ?? { count: 0, ratio: 0 };
+      stats[choice].count += settlement[choice] ? 1 : 0;
+      stats[choice].ratio = stats[choice].count / totalRounds;
+    }, {});
   }
+  console.log('*** NOTE: This statistic only run for current deal card flow');
+  console.log(`======== Run ${totalRounds} rounds ========`);
 
-  stats.streaks = streaks;
-
-  console.log(`======== Run ${totalRounds} rounds for mode ${randomMode} ========`);
   console.log(stats);
+  console.log(`Longest streaks (>=${longestStreak}): `);
+  console.log(JSON.stringify(streaks, null, 2));
+  console.log(`COMBINATION COUNT`);
+  console.log(`Dealer :${JSON.stringify(combinationStats.dealer, null, 2)}`);
+  console.log(`Player :${JSON.stringify(combinationStats.player, null, 2)}`);
+  console.log(`CARD COUNT`);
+  console.log(JSON.stringify(cardStat));
 }
 
-const randomModes = [1, 2, 3];
-const runNo = 3;
-
-for (let randomMode of randomModes) {
-  for (let i = 0; i < runNo; i++) {
-    run(randomMode);
-  }
-}
+const time1 = new Date();
+run();
+const time2 = new Date();
+console.log(time2 - time1);
