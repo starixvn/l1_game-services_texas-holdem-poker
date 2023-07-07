@@ -2,13 +2,15 @@ import TableHttpRouter from 'sc-game-base/src/table/routers/table-http-router';
 import { logger } from 'sc-common';
 import HttpRouter from '../../../src/routes/http-router';
 import BaseEventPublishers from 'sc-game-base/src/core/event-publishers/base-event-publisher';
-import { gameNotifications } from 'sc-base-database';
 
 jest.mock('sc-base-database');
 jest.mock('sc-common');
 jest.mock('../../../src/helpers/result-helper');
 
 const publisher = new BaseEventPublishers();
+const gameNotificationsRepository = {
+  deleteOne: jest.fn()
+};
 describe('HttpRouter', () => {
   const app = {
     get: jest.fn(),
@@ -38,8 +40,6 @@ describe('HttpRouter', () => {
     router = new HttpRouter(appConfigs, gameData, historyQuery, metricQuery, logService);
   });
   it('should inherit TableHttpRouter', () => {
-    // Act
-    const router = new HttpRouter();
     // Assert
     expect(router instanceof TableHttpRouter);
   });
@@ -48,7 +48,6 @@ describe('HttpRouter', () => {
     it('should run correct', () => {
       // Arrange
       app.calledPost = false;
-      router.appConfigs = appConfigs;
       TableHttpRouter.prototype.init = jest.fn();
       router.handleVoidTicket = jest.fn();
       router.handleSetResult = jest.fn();
@@ -68,8 +67,8 @@ describe('HttpRouter', () => {
     describe('when env is UAT', () => {
       it('should send status 404', () => {
         // Arrange
-        const router = new HttpRouter();
-        router.appConfigs = { sentry: { env: 'UAT' } };
+        const appConfigs = { sentry: { env: 'UAT' } };
+        const router = new HttpRouter(appConfigs);
         const res = { sendStatus: jest.fn() };
         const fn = router.handleSetResult();
 
@@ -84,52 +83,52 @@ describe('HttpRouter', () => {
     describe('when env is LOCAL', () => {
       it('should run correctly ', () => {
         // Arrange
-        const router = new HttpRouter();
-        router.appConfigs = { sentry: { env: 'LOCAL' } };
+        const appConfigs = { sentry: { env: 'LOCAL' } };
+        const router = new HttpRouter(appConfigs);
         const res = { send: jest.fn() };
         const req = {
           body: {
-            nickname: 'Aqua64842',
-            player: [
+            "nickname": "Aqua64842",
+            "player": [
               {
-                suit: 0,
-                rank: 2,
+                "suit": 0,
+                "rank": 2
               },
               {
-                suit: 1,
-                rank: 2,
-              },
-            ],
-            dealer: [
-              {
-                suit: 1,
-                rank: 3,
-              },
-              {
-                suit: 2,
-                rank: 3,
+                "suit": 1,
+                "rank": 2
               },
             ],
-            communityCards: [
+            "dealer": [
               {
-                suit: 2,
-                rank: 4,
+                "suit": 1,
+                "rank": 3
               },
               {
-                suit: 2,
-                rank: 5,
+                "suit": 2,
+                "rank": 3
+              },
+            ],
+            "communityCards": [
+              {
+                "suit": 2,
+                "rank": 4
               },
               {
-                suit: 2,
-                rank: 6,
+                "suit": 2,
+                "rank": 5
               },
               {
-                suit: 3,
-                rank: 5,
+                "suit": 2,
+                "rank": 6
               },
               {
-                suit: 3,
-                rank: 4,
+                "suit": 3,
+                "rank": 5
+              },
+              {
+                "suit": 3,
+                "rank": 4
               },
             ],
           },
@@ -154,7 +153,14 @@ describe('HttpRouter', () => {
   describe('handleVoidTicket', () => {
     it('should run correctly when player is valid', async () => {
       // Arrange
-      const router = new HttpRouter(null, null, null, null, null, null, null, publisher);
+      const realPlayer = { UID: 'abc', profile: { name: 'a' } };
+      const gameData = {
+        ingame: { [realPlayer.profile.name]: {} },
+        gameConfigs: { odds: {} },
+        realPlayers: { 1: realPlayer },
+      };
+      const definition = { settle: jest.fn() };
+      const router = new HttpRouter(null, gameData, null, null, null, null, definition, publisher, gameNotificationsRepository);
       const res = { send: jest.fn() };
       const req = {
         body: {
@@ -162,20 +168,14 @@ describe('HttpRouter', () => {
           Name: 'a',
         },
       };
-      const realPlayer = { UID: 'abc', profile: { name: 'a' } };
-      router.gameData = {
-        ingame: { [realPlayer.profile.name]: {} },
-        gameConfigs: { odds: {} },
-        realPlayers: { 1: realPlayer },
-      };
-      router.definition = { settle: jest.fn() };
+     
       publisher.publishToUser = jest.fn();
       //Act
       await router.handleVoidTicket(req, res);
 
       // Assert
       expect(router.gameData.ingame).toStrictEqual({});
-      expect(gameNotifications.deleteOne).toHaveBeenCalled();
+      expect(gameNotificationsRepository.deleteOne).toHaveBeenCalled();
       expect(logger.logError).toHaveBeenCalledWith(
         `Void running ticket from api call for ${JSON.stringify('a')}`,
       );

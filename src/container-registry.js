@@ -17,6 +17,7 @@ import { SocketRouter, HttpRouter } from './routes';
 import HistoryQuery from './query-apis/history-query';
 import { TexasHoldemPokerBets, TexasHoldemPokerRounds } from './models';
 import UserHoldOrSwapConsumer from './consumers/user-hold-or-swap-consumer';
+import { gameNotifications } from 'sc-base-database';
 
 const { asClass, asValue } = awilix;
 
@@ -27,6 +28,7 @@ export default class ContainerRegistry extends Table.TableContainerRegistry {
     this.container.register({
       roundsRepository: asValue(TexasHoldemPokerRounds),
       betsRepository: asValue(TexasHoldemPokerBets),
+      gameNotificationsRepository: asValue(gameNotifications),
     });
   }
 
