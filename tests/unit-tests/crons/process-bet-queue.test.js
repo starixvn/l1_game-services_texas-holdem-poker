@@ -555,7 +555,7 @@ describe('Process bet queue test', () => {
       const player = {
         UID: 1,
         profile: { name: 'profile' },
-        session: { playerId: 123, siteId: 2 },
+        session: { playerId: "123", siteId: 2 },
       };
       const betTracks = {
         roundId: 1,

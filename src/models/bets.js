@@ -40,7 +40,7 @@ const schema = new mongoose.Schema({
   swapTime: { type: Date },
 
   operatorId: { type: String, required: true },
-  playerId: { type: Number },
+  playerId: { type: String },
   roundId: { type: Number, default: 0, required: true },
   paid: { type: Boolean, default: false },
 });
