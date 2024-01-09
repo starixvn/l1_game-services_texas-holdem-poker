@@ -16,6 +16,9 @@ jest.mock('chance', () => {
         return new orig.Chance().integer({ min, max });
       },
       pickone: (arr) => arr[chanceMock.pickoneIndex],
+      floating: ({ min, max }) => {
+        return new orig.Chance().floating({ min, max });
+      },
     };
   };
 });
