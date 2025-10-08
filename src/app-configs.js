@@ -37,7 +37,6 @@ export default {
       dbName: 'minigame2',
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      auto_reconnect: true,
     },
   },
   sentry: {
@@ -50,7 +49,7 @@ export default {
     enable: true,
     secretKey: '6c1f0f28-70f2-46ae-b031-22624a6cd8df',
   },
-  roundMaxDurationInMinutes: 5,
+  roundMaxDurationInMinutes: 1440,
   roundResultSecretKey: 'vOVH6sdmpNWjRRIqCc7rdxs01lwHzfr3',
   enableMsgpackParser: false,
 };
