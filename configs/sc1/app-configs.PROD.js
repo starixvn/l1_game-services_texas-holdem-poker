@@ -50,7 +50,7 @@ export default {
     enable: true,
     secretKey: '30d15293-c7de-4c77-9293-b85d6c5bfe1a',
   },
-  roundMaxDurationInMinutes: 1440,
+  roundMaxDurationInMinutes: 5,
   roundResultSecretKey: '8DLvuetP24JZgn5HQYWTNL9s87JFaHe9',
   enableMsgpackParser: true,
 };
